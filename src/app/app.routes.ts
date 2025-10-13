@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { Test1 } from './features/firedemo/components/test1/test1';
 import { Test2 } from './features/firedemo/components/test2/test2';
+import { Authenticate } from './core/components/authenticate/authenticate';
+import { isAuthenticatedGuard } from './core/guards/is-authenticated-guard';
+import { isNotAuthenticatedGuard } from './core/guards/is-not-authenticated-guard';
 
 export const routes: Routes = [
     {
@@ -10,6 +13,7 @@ export const routes: Routes = [
     },
     {
         path: 'private',
+        canActivate: [isAuthenticatedGuard],
         children: [
             {
                 path: 'test1',
@@ -20,5 +24,10 @@ export const routes: Routes = [
                 component: Test2
             }
         ]
+    },
+    {
+        path: 'authenticate',
+        canActivate: [isNotAuthenticatedGuard],
+        component: Authenticate
     }
 ];
