@@ -3,8 +3,9 @@ import {
   Auth,
   browserSessionPersistence,
   GoogleAuthProvider,
-  signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   user,
   User,
@@ -53,7 +54,7 @@ export class AuthService {
     setPersistence(this.firebaseAuth, browserSessionPersistence);
   }
 
-  async googleLogin(): Promise<void> {
+  async googleLoginWithPopup(): Promise<void> {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(this.firebaseAuth, provider);
@@ -65,6 +66,31 @@ export class AuthService {
       await user.getIdToken(true);
     } catch (error) {
       console.error('Google-Login error:', error);
+      throw error;
+    }
+  }
+
+  async googleLoginWithRedirect(): Promise<void> {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithRedirect(this.firebaseAuth, provider);
+    } catch (error) {
+      console.error('Google-Login error:', error);
+      throw error;
+    }
+  }
+
+  async handleRedirectResult(): Promise<User | null> {
+    try {
+      const result = await getRedirectResult(this.firebaseAuth);
+      if (result?.user) {
+        // Forza il refresh del token per ottenere i claims aggiornati
+        await result.user.getIdToken(true);
+        return result.user;
+      }
+      return null;
+    } catch (error) {
+      console.error('Redirect result error:', error);
       throw error;
     }
   }
