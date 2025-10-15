@@ -1,7 +1,7 @@
-export interface UserProfile {
+export interface Account {
   uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  role?: 'admin' | 'user' | null;
+  email: string;
+  displayName: string;
+  role: 'pending' | 'user' | 'admin';
+  createdAt: Date;
 }

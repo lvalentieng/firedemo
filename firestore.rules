@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regole per la collection accounts
+    match /accounts/{accountId} {
+      // Tutti gli utenti autenticati possono leggere
+      allow read: if request.auth != null;
+      
+      // Solo gli admin possono scrivere
+      allow write: if request.auth != null && 
+                     get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Blocca tutto il resto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

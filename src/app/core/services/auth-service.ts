@@ -10,7 +10,7 @@ import {
   user,
   User,
 } from '@angular/fire/auth';
-import { setPersistence } from 'firebase/auth';
+import { setPersistence, UserCredential } from 'firebase/auth';
 import { from, Observable, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
@@ -21,49 +21,19 @@ export class AuthService {
 
   user$: Observable<User | null>;
 
-  // Signals per lo stato dell'utente e il ruolo
-  readonly currentUserRole = signal<'admin' | 'user' | null>(null);
-  readonly isAuthenticated = signal<boolean>(false);
-
   constructor(private firebaseAuth: Auth) {
     this.setSessionStoragePersistence();
     this.user$ = user(this.firebaseAuth);
-    
-    // Monitora i cambiamenti di autenticazione e leggi i custom claims
-    this.user$.pipe(
-      switchMap(firebaseUser => {
-        if (!firebaseUser) {
-          return of(null);
-        }
-        // Ottieni il token con i custom claims
-        return from(firebaseUser.getIdTokenResult());
-      })
-    ).subscribe(tokenResult => {
-      if (tokenResult) {
-        const role = tokenResult.claims['role'] as 'admin' | 'user' | undefined;
-        this.currentUserRole.set(role || null);
-        this.isAuthenticated.set(true);
-      } else {
-        this.currentUserRole.set(null);
-        this.isAuthenticated.set(false);
-      }
-    });
   }
 
   private setSessionStoragePersistence(): void {
     setPersistence(this.firebaseAuth, browserSessionPersistence);
   }
 
-  async googleLoginWithPopup(): Promise<void> {
+  async googleLoginWithPopup(): Promise<UserCredential> {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(this.firebaseAuth, provider);
-      const user = result.user;
-      if (!user) {
-        throw new Error('Google-Login error');
-      }
-      // Forza il refresh del token per ottenere i claims aggiornati
-      await user.getIdToken(true);
+      return await signInWithPopup(this.firebaseAuth, provider);
     } catch (error) {
       console.error('Google-Login error:', error);
       throw error;
@@ -83,12 +53,7 @@ export class AuthService {
   async handleRedirectResult(): Promise<User | null> {
     try {
       const result = await getRedirectResult(this.firebaseAuth);
-      if (result?.user) {
-        // Forza il refresh del token per ottenere i claims aggiornati
-        await result.user.getIdToken(true);
-        return result.user;
-      }
-      return null;
+      return result?.user || null;
     } catch (error) {
       console.error('Redirect result error:', error);
       throw error;
@@ -100,33 +65,6 @@ export class AuthService {
       sessionStorage.clear();
     });
     return from(promise);
-  }
-
-  // Metodi helper per verificare i ruoli
-  isAdmin(): boolean {
-    return this.currentUserRole() === 'admin';
-  }
-
-  isUser(): boolean {
-    return this.currentUserRole() === 'user';
-  }
-
-  hasRole(): boolean {
-    return this.currentUserRole() !== null;
-  }
-
-  // Observable per il ruolo (utile per i guards)
-  getRole$(): Observable<'admin' | 'user' | null> {
-    return this.user$.pipe(
-      switchMap(firebaseUser => {
-        if (!firebaseUser) return of(null);
-        return from(firebaseUser.getIdTokenResult());
-      }),
-      map(tokenResult => {
-        if (!tokenResult) return null;
-        return tokenResult.claims['role'] as 'admin' | 'user' | null;
-      })
-    );
   }
 
 }

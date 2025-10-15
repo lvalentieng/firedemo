@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth-service';
 import { Router } from '@angular/router';
+import { AccountService } from '../../services/account-service';
 
 @Component({
   selector: 'app-authenticate',
@@ -11,6 +12,7 @@ import { Router } from '@angular/router';
 export class Authenticate implements OnInit {
 
   private authService: AuthService = inject(AuthService);
+  private accountService: AccountService = inject(AccountService);
   private router: Router = inject(Router);
 
   async ngOnInit(): Promise<void> {
@@ -37,7 +39,21 @@ export class Authenticate implements OnInit {
 
   async onGoogleSignInWithPopup(): Promise<void> {
     try {
-      await this.authService.googleLoginWithPopup();
+      const result = await this.authService.googleLoginWithPopup();
+      const user = result.user;
+      console.log("Utente autenticato:", user);
+
+      // Controlla se il documento esiste già, altrimenti crealo
+      const userData = await this.accountService.getAccountData(user.uid);
+      if (!userData) {
+        await this.accountService.createAccountDocument(
+          user.uid,
+          user.email || '',
+          user.displayName || 'Utente'
+        );
+        console.log('Documento utente creato in Firestore');
+      }
+
       this.router.navigateByUrl('');
     } catch (error) {
       console.error('Google Sign-In error:', error);
