@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from '../../services/auth-service';
 import { AccountService } from '../../services/account-service';
@@ -12,10 +12,11 @@ import { AccountService } from '../../services/account-service';
 export class Private implements OnInit {
   private accountService = inject(AccountService);
 
-  role: 'pending' | 'user' | 'admin' | null = null;
+  role = signal<'pending' | 'user' | 'admin' | null>(null);
   
   async ngOnInit(): Promise<void> {
-    this.role = await this.accountService.getCurrentUserRole();
-
+    const userRole = await this.accountService.getCurrentUserRole();
+    debugger;
+    this.role.set(userRole);
   }
 }

@@ -4,12 +4,26 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Regole per la collection accounts
     match /accounts/{accountId} {
-      // Tutti gli utenti autenticati possono leggere
-      allow read: if request.auth != null;
+      // Ogni utente può leggere SOLO il proprio documento
+      allow read: if request.auth != null && request.auth.uid == accountId;
       
-      // Solo gli admin possono scrivere
-      allow write: if request.auth != null && 
+      // Gli admin possono leggere tutti i documenti
+      allow read: if request.auth != null && 
                      get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+      
+      // Ogni utente può creare SOLO il proprio documento (alla prima registrazione)
+      // e DEVE avere role: 'pending' (protezione contro auto-promozione ad admin)
+      allow create: if request.auth != null && 
+                       request.auth.uid == accountId &&
+                       request.resource.data.role == 'pending';
+      
+      // Solo gli admin possono aggiornare i documenti (per cambiare i ruoli)
+      allow update: if request.auth != null && 
+                       get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+      
+      // Solo gli admin possono cancellare documenti
+      allow delete: if request.auth != null && 
+                       get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
     }
     
     // Blocca tutto il resto
