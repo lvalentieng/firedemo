@@ -15,8 +15,8 @@ export class Private implements OnInit {
   role = signal<'pending' | 'user' | 'admin' | null>(null);
   
   async ngOnInit(): Promise<void> {
+    console.log('ngOnInit private');
     const userRole = await this.accountService.getCurrentUserRole();
-    debugger;
     this.role.set(userRole);
   }
 }

@@ -54,6 +54,7 @@ export class Authenticate implements OnInit {
         console.log('Documento utente creato in Firestore');
       }
 
+      console.log('redirect');
       this.router.navigateByUrl('');
     } catch (error) {
       console.error('Google Sign-In error:', error);
