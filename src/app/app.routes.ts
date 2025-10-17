@@ -6,7 +6,7 @@ import { isAuthenticatedGuard } from './core/guards/is-authenticated-guard';
 import { isNotAuthenticatedGuard } from './core/guards/is-not-authenticated-guard';
 import { Private } from './core/components/private/private';
 import { hasAdminRoleGuard, hasUserRoleGuard, hasNoRoleGuard } from './core/guards/role-guard';
-import { AdminPanel } from './features/firedemo/components/admin-panel/admin-panel';
+import { UserManagement } from './features/admin-panel/user-management/user-management';
 import { AccessDenied } from './features/firedemo/components/access-denied/access-denied';
 
 export const routes: Routes = [
@@ -35,9 +35,14 @@ export const routes: Routes = [
                 ]
             },
             {
-                path: 'admin-panel',
+                path: 'admin',
                 canActivate: [hasAdminRoleGuard],
-                component: AdminPanel
+                children: [
+                    {
+                        path: 'user',
+                        component: UserManagement
+                    }
+                ]
             },
             {
                 path: 'access-denied',

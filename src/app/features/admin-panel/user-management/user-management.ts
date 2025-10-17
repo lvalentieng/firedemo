@@ -1,16 +1,16 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AccountService } from '../../../../core/services/account-service';
-import { Account } from '../../../../core/models/user-profile-model';
+import { AccountService } from '../../../core/services/account-service';
+import { Account } from '../../../core/models/user-profile-model';
 
 @Component({
-  selector: 'app-admin-panel',
+  selector: 'app-user-management',
   imports: [CommonModule, FormsModule],
-  templateUrl: './admin-panel.html',
-  styleUrl: './admin-panel.css'
+  templateUrl: './user-management.html',
+  styleUrl: './user-management.css'
 })
-export class AdminPanel implements OnInit {
+export class UserManagement implements OnInit {
   private accountService = inject(AccountService);
 
   accounts = signal<Account[]>([]);

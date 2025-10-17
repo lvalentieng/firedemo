@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AdminPanel } from './admin-panel';
+import { MovieCrud } from './movie-crud';
 
-describe('AdminPanel', () => {
-  let component: AdminPanel;
-  let fixture: ComponentFixture<AdminPanel>;
+describe('MovieCrud', () => {
+  let component: MovieCrud;
+  let fixture: ComponentFixture<MovieCrud>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminPanel]
+      imports: [MovieCrud]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AdminPanel);
+    fixture = TestBed.createComponent(MovieCrud);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
