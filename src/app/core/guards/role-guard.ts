@@ -13,7 +13,6 @@ export const hasUserRoleGuard = () => {
   return authService.user$.pipe(
     take(1),
     switchMap(async (authUser) => {
-      debugger;
       if (!authUser) {
         console.log("illegal state: not authenticated");
         router.navigate(['/authenticate']);
@@ -39,7 +38,6 @@ export const hasAdminRoleGuard = () => {
   return authService.user$.pipe(
     take(1),
     switchMap(async (authUser) => {
-      debugger;
       if (!authUser) {
         console.log("illegal state: not authenticated");
         router.navigate(['/authenticate']);
@@ -70,7 +68,6 @@ export const hasNoRoleGuard  = () => {
   return authService.user$.pipe(
     take(1),
     switchMap(async (authUser) => {
-      debugger;
       if (!authUser) {
         console.log("illegal state: not authenticated");
         router.navigate(['/authenticate']);
