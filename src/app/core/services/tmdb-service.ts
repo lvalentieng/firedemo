@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TmdbResponse } from '../models/tmdb-model';
+import { TmdbResponse, TmdbImagesResponse } from '../models/tmdb-model';
 
 @Injectable({
   providedIn: 'root'
@@ -53,4 +53,24 @@ export class TmdbService {
       { headers, params }
     );
   }
+
+  getMovieImages(movieId: number): Observable<TmdbImagesResponse> {
+    const token = localStorage.getItem('TMDB_TOKEN');
+    
+    if (!token) {
+      throw new Error('TMDB_TOKEN non trovato in localStorage');
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'accept': 'application/json'
+    });
+
+    return this.http.get<TmdbImagesResponse>(
+      `${this.apiUrl}/movie/${movieId}/images`,
+      { headers }
+    );
+  }
+
+  
 }

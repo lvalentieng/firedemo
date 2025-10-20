@@ -21,3 +21,21 @@ export interface TmdbResponse {
   total_pages: number;
   total_results: number;
 }
+
+export interface TmdbImage {
+  aspect_ratio: number;
+  height: number;
+  iso_3166_1: string | null;
+  iso_639_1: string | null;
+  file_path: string;
+  vote_average: number;
+  vote_count: number;
+  width: number;
+}
+
+export interface TmdbImagesResponse {
+  backdrops: TmdbImage[];
+  id: number;
+  logos: TmdbImage[];
+  posters: TmdbImage[];
+}
