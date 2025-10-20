@@ -1,1 +1,11 @@
-Utenza non abilitata
+<div>
+  <h1>Utenza non abilitata</h1>
+  
+  @if (isLoading()) {
+    <p>Caricamento versione...</p>
+  }
+  
+  @if (!isLoading()) {
+    <p>Versione corrente: <strong>{{ currentVersion() }}</strong></p>
+  }
+</div>
