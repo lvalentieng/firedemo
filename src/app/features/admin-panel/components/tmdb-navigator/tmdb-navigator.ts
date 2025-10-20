@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { TmdbMovie } from '../../../../core/models/tmdb-model';
 import { TmdbService } from '../../../../core/services/tmdb-service';
 import { PaginatorModule } from 'primeng/paginator';
-import { Firestore, collection, addDoc, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, arrayUnion } from '@angular/fire/firestore';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
@@ -32,6 +32,9 @@ export class TmdbNavigator implements OnInit {
   markedMovies = signal<Set<number>>(new Set());
 
   async ngOnInit(): Promise<void> {
+    // Carica prima lo stato globale dei film
+    await this.loadAllMoviesStatus();
+    // Poi carica i film della prima pagina
     await this.loadMovies(0);
   }
 
@@ -50,8 +53,8 @@ export class TmdbNavigator implements OnInit {
             this.firstElementPage.set(0);
           }
 
-          // Carica lo stato di tutti i film della pagina
-          await this.loadMoviesStatus(response.results);
+          // Non serve più caricare lo stato per ogni pagina
+          // await this.loadMoviesStatus(response.results);
 
           this.isLoading.set(false);
         },
@@ -88,6 +91,19 @@ export class TmdbNavigator implements OnInit {
         importedAt: new Date()
       });
       
+      // Aggiorna l'indice aggregato
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        imported: arrayUnion(movie.id)
+      }).catch(async () => {
+        // Se il documento non esiste, crealo
+        await setDoc(metadataRef, {
+          imported: [movie.id],
+          excluded: [],
+          marked: []
+        });
+      });
+      
       // Aggiorna lo stato locale
       this.importedMovies.update(set => {
         const newSet = new Set(set);
@@ -104,9 +120,17 @@ export class TmdbNavigator implements OnInit {
 
   async excludeMovie(movieId: number): Promise<void> {
     try {
-      const excludedDoc = doc(this.firestore, 'excluded-movies', movieId.toString());
-      await setDoc(excludedDoc, {
-        excludedAt: new Date()
+      // SOLO aggiorna l'indice aggregato
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        excluded: arrayUnion(movieId)
+      }).catch(async () => {
+        // Se il documento non esiste, crealo
+        await setDoc(metadataRef, {
+          imported: [],
+          excluded: [movieId],
+          marked: []
+        });
       });
       
       // Aggiorna lo stato locale
@@ -125,9 +149,17 @@ export class TmdbNavigator implements OnInit {
 
   async markAsReviewed(movieId: number): Promise<void> {
     try {
-      const markedDoc = doc(this.firestore, 'marked-movies', movieId.toString());
-      await setDoc(markedDoc, {
-        markedAt: new Date()
+      // SOLO aggiorna l'indice aggregato
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        marked: arrayUnion(movieId)
+      }).catch(async () => {
+        // Se il documento non esiste, crealo
+        await setDoc(metadataRef, {
+          imported: [],
+          excluded: [],
+          marked: [movieId]
+        });
       });
       
       // Aggiorna lo stato locale
@@ -144,35 +176,38 @@ export class TmdbNavigator implements OnInit {
     }
   }
 
-  async loadMoviesStatus(movies: TmdbMovie[]): Promise<void> {
-    const movieIds = movies.map(m => m.id);
-    
-    // Carica gli stati in parallelo
-    const [imported, excluded, marked] = await Promise.all([
-      this.checkMoviesInCollection('movies', movieIds),
-      this.checkMoviesInCollection('excluded-movies', movieIds),
-      this.checkMoviesInCollection('marked-movies', movieIds)
-    ]);
+  async loadAllMoviesStatus(): Promise<void> {
+    try {
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      const metadataSnap = await getDoc(metadataRef);
+      
+      if (metadataSnap.exists()) {
+        const data = metadataSnap.data();
+        this.importedMovies.set(new Set(data['imported'] || []));
+        this.excludedMovies.set(new Set(data['excluded'] || []));
+        this.markedMovies.set(new Set(data['marked'] || []));
+      } else {
+        // Crea il documento se non esiste
+        await setDoc(metadataRef, {
+          imported: [],
+          excluded: [],
+          marked: []
+        });
+      }
+    } catch (error) {
+      console.error('Error loading movies status:', error);
+    }
+  }
 
-    this.importedMovies.set(imported);
-    this.excludedMovies.set(excluded);
-    this.markedMovies.set(marked);
+  async loadMoviesStatus(movies: TmdbMovie[]): Promise<void> {
+    // Non più necessario - rimosso per efficienza
+    // Lo stato viene caricato una sola volta in loadAllMoviesStatus()
   }
 
   async checkMoviesInCollection(collectionName: string, movieIds: number[]): Promise<Set<number>> {
-    const existingIds = new Set<number>();
-    
-    await Promise.all(
-      movieIds.map(async (id) => {
-        const docRef = doc(this.firestore, collectionName, id.toString());
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          existingIds.add(id);
-        }
-      })
-    );
-    
-    return existingIds;
+    // Non più necessario - rimosso per efficienza
+    // Lo stato viene caricato dall'indice aggregato
+    return new Set<number>();
   }
 
   isImported(movieId: number): boolean {
