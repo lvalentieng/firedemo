@@ -2,10 +2,11 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from '../../services/auth-service';
 import { AccountService } from '../../services/account-service';
+import { PanelModule } from 'primeng/panel';
 
 @Component({
   selector: 'app-private',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, PanelModule],
   templateUrl: './private.html',
   styleUrl: './private.css'
 })

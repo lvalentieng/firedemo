@@ -11,9 +11,10 @@ import { Menubar } from 'primeng/menubar';
 })
 export class AdminPanel {
   items: MenuItem[] = [
+    { label: 'TMDB Navigator', icon: 'pi pi-search', routerLink: '/private/admin/tmdb' },
     { label: 'User Management', icon: 'pi pi-users', routerLink: '/private/admin/user' },
-    { label: 'Movie CRUD', icon: 'pi pi-film', routerLink: '/private/admin/movie' },
-    { label: 'TMDB Navigator', icon: 'pi pi-search', routerLink: '/private/admin/tmdb' }
+    { label: 'Movie CRUD', icon: 'pi pi-film', routerLink: '/private/admin/movie' }
+    
   ];
 
   ngOnInit() {
