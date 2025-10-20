@@ -128,6 +128,9 @@ export class TmdbNavigator implements OnInit {
 
     this.firstElementPage.set(event.first ?? 0);
 
+    // Reset della selezione quando si cambia pagina
+    this.selectedMovies.set(new Set());
+
     this.loadMovies(this.currentPage());
   }
 
