@@ -1,106 +1,70 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { Customer } from '../../../../core/models/customer-model';
+import { TmdbMovie } from '../../../../core/models/tmdb-model';
+import { TmdbService } from '../../../../core/services/tmdb-service';
+import { PaginatorModule } from 'primeng/paginator';
 
 @Component({
   selector: 'app-tmdb-navigator',
-  imports: [TableModule, CommonModule],
+  imports: [TableModule, CommonModule, PaginatorModule],
   templateUrl: './tmdb-navigator.html',
   styleUrl: './tmdb-navigator.css'
 })
-export class TmdbNavigator {
+export class TmdbNavigator implements OnInit {
+  private tmdbService = inject(TmdbService);
 
-  customers: Customer[] = [
-    {
-      id: 1000,
-      name: 'James Butt',
-      country: {
-        name: 'Algeria',
-        code: 'dz'
-      },
-      company: 'Benton, John B Jr',
-      date: '2015-09-13',
-      status: 'unqualified',
-      verified: true,
-      activity: 17,
-      representative: {
-        name: 'Ioni Bowcher',
-        image: 'ionibowcher.png'
-      },
-      balance: 70663
-    },
-    {
-      id: 1001,
-      name: 'Josephine Darakjy',
-      country: {
-        name: 'Egypt',
-        code: 'eg'
-      },
-      company: 'Chanay, Jeffrey A Esq',
-      date: '2019-02-09',
-      status: 'proposal',
-      verified: true,
-      activity: 0,
-      representative: {
-        name: 'Amy Elsner',
-        image: 'amyelsner.png'
-      },
-      balance: 82429
-    },
-    {
-      id: 1002,
-      name: 'Art Venere',
-      country: {
-        name: 'Panama',
-        code: 'pa'
-      },
-      company: 'Chemel, James L Cpa',
-      date: '2017-05-13',
-      status: 'qualified',
-      verified: false,
-      activity: 63,
-      representative: {
-        name: 'Asiya Javayant',
-        image: 'asiyajavayant.png'
-      },
-      balance: 28334
-    },
-    {
-      id: 1003,
-      name: 'Lenna Paprocki',
-      country: {
-        name: 'Slovenia',
-        code: 'si'
-      },
-      company: 'Feltz Printing Service',
-      date: '2020-09-15',
-      status: 'new',
-      verified: false,
-      activity: 37,
-      representative: {
-        name: 'Xuxue Feng',
-        image: 'xuxuefeng.png'
-      },
-      balance: 88521
-    },
-    {
-      id: 1004,
-      name: 'Donette Foller',
-      country: {
-        name: 'South Africa',
-        code: 'za'
-      },
-      company: 'Printing Dimensions',
-      date: '2016-05-20',
-      status: 'proposal',
-      verified: true,
-      activity: 33,
-      representative: {
-        name: 'Asiya Javayant',
-        image: 'asiyajavayant.png'
-      },
-      balance: 93905
+  firstElementPage = signal(0);
+
+  movies = signal<TmdbMovie[]>([]);
+  isLoading = signal(false);
+  currentPage = signal(0);
+  totalPages = signal(0);
+  totalResults = signal(0);
+  hasLoaded = signal(false);
+
+  async ngOnInit(): Promise<void> {
+    await this.loadMovies(0);
+  }
+
+  async loadMovies(page: number): Promise<void> {
+    this.isLoading.set(true);
+    try {
+      this.tmdbService.getTopRatedMovies(page).subscribe({
+        next: (response) => {
+          this.movies.set(response.results);
+          this.currentPage.set(response.page);
+          this.totalPages.set(response.total_pages);
+          this.totalResults.set(response.total_results);
+          this.hasLoaded.set(true);
+
+          if (page === 0) {
+            this.firstElementPage.set(0);
+          }
+
+          this.isLoading.set(false);
+        },
+        error: (error) => {
+          console.error('Error loading movies:', error);
+          alert('Errore nel caricamento dei film: ' + error.message);
+          this.isLoading.set(false);
+        }
+      });
+    } catch (error) {
+      console.error('Error loading movies:', error);
+      alert('Errore nel caricamento dei film. Verifica che TMDB_TOKEN sia impostato in localStorage.');
+      this.isLoading.set(false);
     }
-  ];
+  }
+
+  onPageChange(event: any): void {
+    console.debug('PlansHistoryComponent - onPageChange():', event);
+
+    const pageToShow = event.rows != 20 ? 0 : event.page;
+    this.currentPage.set(pageToShow || 0);
+
+    this.firstElementPage.set(event.first ?? 0);
+
+    this.loadMovies(this.currentPage());
+  }
 }
