@@ -6,10 +6,14 @@ import { TmdbService } from '../../../../core/services/tmdb-service';
 import { PaginatorModule } from 'primeng/paginator';
 import { Firestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from '@angular/fire/firestore';
 import { ButtonModule } from 'primeng/button';
+import { PanelModule } from 'primeng/panel';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-tmdb-navigator',
-  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule],
+  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, InputGroup, InputGroupAddonModule, InputTextModule],
   templateUrl: './tmdb-navigator.html',
   styleUrl: './tmdb-navigator.css'
 })

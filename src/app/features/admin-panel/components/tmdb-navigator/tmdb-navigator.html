@@ -6,18 +6,17 @@
   }
 
   @if (!isLoading()) {
-    <p>Totale film: {{ totalResults() }} | Pagina {{ currentPage() }} di {{ totalPages() }}</p>
 
-    <div style="margin-bottom: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
-      <strong>{{ getSelectedCount() }} film selezionati</strong>
-      <button pButton size="small" severity="success" (click)="importSelectedMovies()" style="margin-left: 10px;">Importa Selezionati</button>
-      <button pButton size="small" severity="danger" (click)="removeSelectedMovies()" style="margin-left: 5px;">Rimuovi Selezionati</button>
-      <button pButton size="small" severity="warn" (click)="excludeSelectedMovies()" style="margin-left: 5px;">Escludi Selezionati</button>
-      <button pButton size="small" severity="secondary" (click)="includeSelectedMovies()" style="margin-left: 5px;">Includi Selezionati</button>
-      <button pButton size="small" severity="info" (click)="markSelectedAsReviewed()" style="margin-left: 5px;">Marca Selezionati</button>
-      <button pButton size="small" severity="help" (click)="unmarkSelectedMovies()" style="margin-left: 5px;">Demarca Selezionati</button>
-    </div>
-    
+    <p-panel header="Cerca">
+        <div class="">
+            <form>
+                <p-inputgroup>
+                    <input pInputText placeholder="Keyword" />
+                    <p-button label="Search" />
+                </p-inputgroup>
+            </form>
+        </div>
+    </p-panel>
 
     <p-table
       [value]="movies()"
@@ -73,11 +72,24 @@
       </ng-template>
     </p-table>
 
+    <div style="margin-top: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+      <strong>{{ getSelectedCount() }} film selezionati</strong>
+      <button pButton size="small" severity="success" (click)="importSelectedMovies()" style="margin-left: 10px;">Importa Selezionati</button>
+      <button pButton size="small" severity="danger" (click)="removeSelectedMovies()" style="margin-left: 5px;">Rimuovi Selezionati</button>
+      <button pButton size="small" severity="warn" (click)="excludeSelectedMovies()" style="margin-left: 5px;">Escludi Selezionati</button>
+      <button pButton size="small" severity="secondary" (click)="includeSelectedMovies()" style="margin-left: 5px;">Includi Selezionati</button>
+      <button pButton size="small" severity="info" (click)="markSelectedAsReviewed()" style="margin-left: 5px;">Marca Selezionati</button>
+      <button pButton size="small" severity="help" (click)="unmarkSelectedMovies()" style="margin-left: 5px;">Demarca Selezionati</button>
+    </div>
+
     <div class="flex justify-end w-full bg-white">
         <p-paginator (onPageChange)="onPageChange($event)" [first]="firstElementPage()" [rows]="20"
             [totalRecords]="totalResults()" [showCurrentPageReport]="true"
             [showPageLinks]="true" [showJumpToPageDropdown]="false" [showFirstLastIcon]="true"
             currentPageReportTemplate="Elementi {first}-{last} di {totalRecords}" />
     </div>
+    
+
+    
   }
 </div>
