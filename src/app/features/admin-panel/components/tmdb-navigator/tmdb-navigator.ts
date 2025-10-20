@@ -143,6 +143,59 @@ export class TmdbNavigator implements OnInit {
         importedAt: new Date()
       });
       
+      // Recupera e importa le immagini (solo backdrops) - ATTENDI il completamento
+      await new Promise<void>((resolve, reject) => {
+        this.tmdbService.getMovieImages(movie.id).subscribe({
+          next: async (imagesResponse) => {
+            try {
+              const backdrops = imagesResponse.backdrops;
+              
+              if (backdrops && backdrops.length > 0) {
+                // Importa ogni backdrop nella sub-collection /movies/{movieId}/images
+                const imagePromises = backdrops.map(backdrop => {
+                  // Pulisci il file_path per creare un ID valido
+                  const cleanPath = backdrop.file_path
+                    .replace(/\//g, '_')
+                    .replace(/[^a-zA-Z0-9_-]/g, '');
+                  const imageId = `tmdb-${cleanPath}`;
+                  
+                  const imageDoc = doc(this.firestore, 'movies', movie.id.toString(), 'images', imageId);
+                  return setDoc(imageDoc, {
+                    ...backdrop,
+                    importedAt: new Date()
+                  });
+                });
+                
+                await Promise.all(imagePromises);
+                
+                // Crea metadati per tracking delle immagini importate
+                const imageIds = backdrops.map(backdrop => {
+                  const cleanPath = backdrop.file_path
+                    .replace(/\//g, '_')
+                    .replace(/[^a-zA-Z0-9_-]/g, '');
+                  return `tmdb-${cleanPath}`;
+                });
+                
+                const imageMetadataRef = doc(this.firestore, 'movies', movie.id.toString(), 'metadata', 'image-status');
+                await setDoc(imageMetadataRef, {
+                  imported: imageIds,
+                  excluded: []
+                });
+                
+                console.log(`Importate ${backdrops.length} immagini per il film "${movie.title}"`);
+              }
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+          error: (error) => {
+            console.error('Error loading images:', error);
+            reject(error);
+          }
+        });
+      });
+      
       // Aggiorna l'indice aggregato
       const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
       await updateDoc(metadataRef, {
@@ -163,7 +216,7 @@ export class TmdbNavigator implements OnInit {
         return newSet;
       });
       
-      alert(`Film "${movie.title}" importato con successo!`);
+      alert(`Film "${movie.title}" importato con successo con tutte le immagini!`);
     } catch (error) {
       console.error('Error importing movie:', error);
       alert('Errore nell\'importazione del film: ' + error);
@@ -403,12 +456,62 @@ export class TmdbNavigator implements OnInit {
       
       // Importa tutti i film in parallelo
       await Promise.all(
-        selectedMoviesData.map(movie => 
-          setDoc(doc(this.firestore, 'movies', movie.id.toString()), {
+        selectedMoviesData.map(async movie => {
+          // Importa il film
+          await setDoc(doc(this.firestore, 'movies', movie.id.toString()), {
             ...movie,
             importedAt: new Date()
-          })
-        )
+          });
+          
+          // Importa le immagini per ogni film - ATTENDI il completamento
+          await new Promise<void>((resolve, reject) => {
+            this.tmdbService.getMovieImages(movie.id).subscribe({
+              next: async (imagesResponse) => {
+                try {
+                  const backdrops = imagesResponse.backdrops;
+                  
+                  if (backdrops && backdrops.length > 0) {
+                    const imagePromises = backdrops.map(backdrop => {
+                      const cleanPath = backdrop.file_path
+                        .replace(/\//g, '_')
+                        .replace(/[^a-zA-Z0-9_-]/g, '');
+                      const imageId = `tmdb${cleanPath}`;
+                      
+                      const imageDoc = doc(this.firestore, 'movies', movie.id.toString(), 'images', imageId);
+                      return setDoc(imageDoc, {
+                        ...backdrop,
+                        importedAt: new Date()
+                      });
+                    });
+                    
+                    await Promise.all(imagePromises);
+                    
+                    // Crea metadati per tracking
+                    const imageIds = backdrops.map(backdrop => {
+                      const cleanPath = backdrop.file_path
+                        .replace(/\//g, '_')
+                        .replace(/[^a-zA-Z0-9_-]/g, '');
+                      return `tmdb${cleanPath}`;
+                    });
+                    
+                    const imageMetadataRef = doc(this.firestore, 'movies', movie.id.toString(), 'metadata', 'image-status');
+                    await setDoc(imageMetadataRef, {
+                      imported: imageIds,
+                      excluded: []
+                    });
+                  }
+                  resolve();
+                } catch (err) {
+                  reject(err);
+                }
+              },
+              error: (error) => {
+                console.error(`Error loading images for movie ${movie.id}:`, error);
+                reject(error);
+              }
+            });
+          });
+        })
       );
 
       // Aggiorna l'indice aggregato con tutti gli ID
@@ -434,7 +537,7 @@ export class TmdbNavigator implements OnInit {
       // Pulisci la selezione
       this.selectedMovies.set(new Set());
 
-      alert(`${selectedIds.length} film importati con successo!`);
+      alert(`${selectedIds.length} film importati con successo con tutte le immagini!`);
     } catch (error) {
       console.error('Error importing movies:', error);
       alert('Errore nell\'importazione dei film: ' + error);
