@@ -2,9 +2,10 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessC
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { initializeApp, provideFirebaseApp, getApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import { initializeAppCheck, provideAppCheck, ReCaptchaV3Provider } from '@angular/fire/app-check';
 import { environment } from '../environments/environment';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 
@@ -16,6 +17,13 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)), 
     provideAuth(() => getAuth()), 
     provideFirestore(() => getFirestore()),
+    provideAppCheck(() => {
+      const appCheck = initializeAppCheck(getApp(), {
+        provider: new ReCaptchaV3Provider('6LftaPArAAAAAO6fliMG66qwAXWrMF5-YXNRqK3H'),
+        isTokenAutoRefreshEnabled: true
+      });
+      return appCheck;
+    }),
     provideHttpClient(withFetch())
   ]
 };

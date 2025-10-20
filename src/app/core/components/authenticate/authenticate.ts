@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { AuthService } from '../../services/auth-service';
 import { Router } from '@angular/router';
 import { AccountService } from '../../services/account-service';
+import { collection, Firestore, getDocs } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-authenticate',
@@ -14,6 +15,10 @@ export class Authenticate implements OnInit {
   private authService: AuthService = inject(AuthService);
   private accountService: AccountService = inject(AccountService);
   private router: Router = inject(Router);
+  private firestore = inject(Firestore);
+
+  currentVersion = signal<string>('');
+  isLoading = signal(true);
 
   async ngOnInit(): Promise<void> {
     // Gestisce il risultato del redirect dopo il login con Google
@@ -35,6 +40,8 @@ export class Authenticate implements OnInit {
         this.router.navigateByUrl('');
       }
     });
+  
+    await this.loadVersion();
   }
 
   async onGoogleSignInWithPopup(): Promise<void> {
@@ -70,6 +77,25 @@ export class Authenticate implements OnInit {
     } catch (error) {
       console.error('Google Sign-In error:', error);
       alert("Login fallita miseramente " + error)
+    }
+  }
+
+  async loadVersion(): Promise<void> {
+    this.isLoading.set(true);
+    try {
+      const versionCollection = collection(this.firestore, 'version');
+      const snapshot = await getDocs(versionCollection);
+      
+      if (!snapshot.empty) {
+        const versionDoc = snapshot.docs[0];
+        const data = versionDoc.data();
+        this.currentVersion.set(data['current'] || 'N/A');
+      }
+    } catch (error) {
+      console.error('Error loading version:', error);
+      this.currentVersion.set('Errore nel caricamento');
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
