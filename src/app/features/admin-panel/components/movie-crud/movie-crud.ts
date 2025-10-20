@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MovieService } from '../../../core/services/movie-service';
-import { Movie } from '../../../core/models/movie-model';
+import { MovieService } from '../../../../core/services/movie-service';
+import { Movie } from '../../../../core/models/movie-model';
 
 @Component({
   selector: 'app-movie-crud',

@@ -6,9 +6,11 @@ import { isAuthenticatedGuard } from './core/guards/is-authenticated-guard';
 import { isNotAuthenticatedGuard } from './core/guards/is-not-authenticated-guard';
 import { Private } from './core/components/private/private';
 import { hasAdminRoleGuard, hasUserRoleGuard, hasNoRoleGuard } from './core/guards/role-guard';
-import { UserManagement } from './features/admin-panel/user-management/user-management';
+import { UserManagement } from './features/admin-panel/components/user-management/user-management';
 import { AccessDenied } from './features/firedemo/components/access-denied/access-denied';
-import { MovieCrud } from './features/admin-panel/movie-crud/movie-crud';
+import { MovieCrud } from './features/admin-panel/components/movie-crud/movie-crud';
+import { TmdbNavigator } from './features/admin-panel/components/tmdb-navigator/tmdb-navigator';
+import { AdminPanel } from './features/admin-panel/admin-panel';
 
 export const routes: Routes = [
     {
@@ -37,6 +39,7 @@ export const routes: Routes = [
             },
             {
                 path: 'admin',
+                component: AdminPanel,
                 canActivate: [hasAdminRoleGuard],
                 children: [
                     {
@@ -46,6 +49,15 @@ export const routes: Routes = [
                     {
                         path: 'movie',
                         component: MovieCrud
+                    },
+                    {
+                        path: 'tmdb',
+                        component: TmdbNavigator
+                    },
+                    {
+                        path: '',
+                        redirectTo: '/private/admin/tmdb',
+                        pathMatch: 'full'
                     }
                 ]
             },

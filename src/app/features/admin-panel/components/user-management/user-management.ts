@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AccountService } from '../../../core/services/account-service';
-import { Account } from '../../../core/models/user-profile-model';
+import { AccountService } from '../../../../core/services/account-service';
+import { Account } from '../../../../core/models/user-profile-model';
 
 @Component({
   selector: 'app-user-management',
