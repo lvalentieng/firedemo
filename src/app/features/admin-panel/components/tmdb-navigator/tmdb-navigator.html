@@ -1,6 +1,4 @@
 <div class="tmdb-navigator">
-  <h1>TMDB - Film Più Votati</h1>
-
   @if (isLoading()) {
     <p>Caricamento film...</p>
   }
@@ -9,14 +7,19 @@
 
     <p-panel header="Cerca">
         <div class="">
-            <form>
+            <form (ngSubmit)="searchMovies()">
                 <p-inputgroup>
-                    <input pInputText placeholder="Keyword" />
-                    <p-button label="Search" />
+                    <input pInputText placeholder="Cerca film per titolo" [(ngModel)]="searchQuery" name="searchQuery" />
+                    <p-button label="Cerca" type="submit" />
+                    <p-button [disabled]="!isSearchMode()" label="Pulisci" severity="secondary" type="button" (click)="clearSearch()" />
                 </p-inputgroup>
             </form>
         </div>
     </p-panel>
+
+    @if (isSearchMode()) {
+      <p style="margin-top: 10px;"><strong>Risultati ricerca per:</strong> "{{ searchQuery() }}"</p>
+    }
 
     <p-table
       [value]="movies()"

@@ -10,10 +10,12 @@ import { PanelModule } from 'primeng/panel';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
+import { FormsModule } from '@angular/forms';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-tmdb-navigator',
-  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, InputGroup, InputGroupAddonModule, InputTextModule],
+  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, InputGroup, InputGroupAddonModule, InputTextModule, FormsModule, TooltipModule],
   templateUrl: './tmdb-navigator.html',
   styleUrl: './tmdb-navigator.css'
 })
@@ -38,6 +40,10 @@ export class TmdbNavigator implements OnInit {
   // Set per tracciare i film selezionati
   selectedMovies = signal<Set<number>>(new Set());
 
+  // Ricerca
+  searchQuery = signal<string>('');
+  isSearchMode = signal<boolean>(false);
+
   async ngOnInit(): Promise<void> {
     // Carica prima lo stato globale dei film
     await this.loadAllMoviesStatus();
@@ -48,7 +54,11 @@ export class TmdbNavigator implements OnInit {
   async loadMovies(page: number): Promise<void> {
     this.isLoading.set(true);
     try {
-      this.tmdbService.getTopRatedMovies(page).subscribe({
+      const observable = this.isSearchMode() && this.searchQuery().trim() !== ''
+        ? this.tmdbService.searchMovies(this.searchQuery(), page)
+        : this.tmdbService.getTopRatedMovies(page);
+
+      observable.subscribe({
         next: async (response) => {
           this.movies.set(response.results);
           this.currentPage.set(response.page);
@@ -76,6 +86,26 @@ export class TmdbNavigator implements OnInit {
       alert('Errore nel caricamento dei film. Verifica che TMDB_TOKEN sia impostato in localStorage.');
       this.isLoading.set(false);
     }
+  }
+
+  searchMovies(): void {
+    if (this.searchQuery().trim() === '') {
+      alert('Inserisci una parola chiave per la ricerca!');
+      return;
+    }
+    
+    this.isSearchMode.set(true);
+    this.currentPage.set(0);
+    this.firstElementPage.set(0);
+    this.loadMovies(0);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.isSearchMode.set(false);
+    this.currentPage.set(0);
+    this.firstElementPage.set(0);
+    this.loadMovies(0);
   }
 
   onPageChange(event: any): void {
