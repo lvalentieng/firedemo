@@ -12,10 +12,11 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { TooltipModule } from 'primeng/tooltip';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-tmdb-navigator',
-  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, InputGroup, InputGroupAddonModule, InputTextModule, FormsModule, TooltipModule],
+  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, InputGroup, InputGroupAddonModule, InputTextModule, FormsModule, TooltipModule, SelectModule],
   templateUrl: './tmdb-navigator.html',
   styleUrl: './tmdb-navigator.css'
 })
@@ -43,6 +44,17 @@ export class TmdbNavigator implements OnInit {
   // Ricerca
   searchQuery = signal<string>('');
   isSearchMode = signal<boolean>(false);
+
+  // Operazione selezionata per batch
+  selectedOperation = signal<string | null>(null);
+  batchOperations = [
+    { label: 'Importa', value: 'import' },
+    { label: 'Rimuovi', value: 'remove' },
+    { label: 'Escludi', value: 'exclude' },
+    { label: 'Includi', value: 'include' },
+    { label: 'Marca', value: 'mark' },
+    { label: 'Demarca', value: 'unmark' }
+  ];
 
   async ngOnInit(): Promise<void> {
     // Carica prima lo stato globale dei film
@@ -651,6 +663,40 @@ export class TmdbNavigator implements OnInit {
       alert('Errore nel demarcare i film: ' + error);
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  async applyBatchOperation(): Promise<void> {
+    const operation = this.selectedOperation();
+    if (!operation) {
+      alert('Seleziona un\'operazione da eseguire!');
+      return;
+    }
+
+    if (this.selectedMovies().size === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    switch (operation) {
+      case 'import':
+        await this.importSelectedMovies();
+        break;
+      case 'remove':
+        await this.removeSelectedMovies();
+        break;
+      case 'exclude':
+        await this.excludeSelectedMovies();
+        break;
+      case 'include':
+        await this.includeSelectedMovies();
+        break;
+      case 'mark':
+        await this.markSelectedAsReviewed();
+        break;
+      case 'unmark':
+        await this.unmarkSelectedMovies();
+        break;
     }
   }
 }
