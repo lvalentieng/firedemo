@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { TmdbMovie } from '../../../../core/models/tmdb-model';
 import { TmdbService } from '../../../../core/services/tmdb-service';
 import { PaginatorModule } from 'primeng/paginator';
-import { Firestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, arrayUnion } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from '@angular/fire/firestore';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
@@ -176,6 +176,76 @@ export class TmdbNavigator implements OnInit {
     } catch (error) {
       console.error('Error marking movie as reviewed:', error);
       alert('Errore nel marcare il film: ' + error);
+    }
+  }
+
+  async removeMovie(movieId: number): Promise<void> {
+    try {
+      // Rimuovi il film dalla collection /movies
+      const movieDoc = doc(this.firestore, 'movies', movieId.toString());
+      await deleteDoc(movieDoc);
+      
+      // Rimuovi dall'indice aggregato
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        imported: arrayRemove(movieId)
+      });
+      
+      // Aggiorna lo stato locale
+      this.importedMovies.update(set => {
+        const newSet = new Set(set);
+        newSet.delete(movieId);
+        return newSet;
+      });
+      
+      alert(`Film ID ${movieId} rimosso con successo!`);
+    } catch (error) {
+      console.error('Error removing movie:', error);
+      alert('Errore nella rimozione del film: ' + error);
+    }
+  }
+
+  async includeMovie(movieId: number): Promise<void> {
+    try {
+      // Rimuovi dall'indice di esclusione
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        excluded: arrayRemove(movieId)
+      });
+      
+      // Aggiorna lo stato locale
+      this.excludedMovies.update(set => {
+        const newSet = new Set(set);
+        newSet.delete(movieId);
+        return newSet;
+      });
+      
+      alert(`Film ID ${movieId} incluso con successo!`);
+    } catch (error) {
+      console.error('Error including movie:', error);
+      alert('Errore nell\'inclusione del film: ' + error);
+    }
+  }
+
+  async unmarkMovie(movieId: number): Promise<void> {
+    try {
+      // Rimuovi dall'indice di marcatura
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        marked: arrayRemove(movieId)
+      });
+      
+      // Aggiorna lo stato locale
+      this.markedMovies.update(set => {
+        const newSet = new Set(set);
+        newSet.delete(movieId);
+        return newSet;
+      });
+      
+      alert(`Film ID ${movieId} demarcato con successo!`);
+    } catch (error) {
+      console.error('Error unmarking movie:', error);
+      alert('Errore nel demarcare il film: ' + error);
     }
   }
 
@@ -409,6 +479,142 @@ export class TmdbNavigator implements OnInit {
     } catch (error) {
       console.error('Error marking movies as reviewed:', error);
       alert('Errore nel marcare i film: ' + error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async removeSelectedMovies(): Promise<void> {
+    const selectedIds = Array.from(this.selectedMovies());
+    if (selectedIds.length === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    if (!confirm(`Vuoi rimuovere ${selectedIds.length} film selezionati?`)) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    try {
+      // Rimuovi tutti i film dalla collection /movies in parallelo
+      await Promise.all(
+        selectedIds.map(id => 
+          deleteDoc(doc(this.firestore, 'movies', id.toString()))
+        )
+      );
+
+      // Aggiorna l'indice aggregato rimuovendo tutti gli ID
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      const metadataSnap = await getDoc(metadataRef);
+      if (metadataSnap.exists()) {
+        const currentData = metadataSnap.data();
+        const updatedImported = (currentData['imported'] || []).filter((id: number) => !selectedIds.includes(id));
+        await updateDoc(metadataRef, {
+          imported: updatedImported
+        });
+      }
+
+      // Aggiorna lo stato locale
+      this.importedMovies.update(set => {
+        const newSet = new Set(set);
+        selectedIds.forEach(id => newSet.delete(id));
+        return newSet;
+      });
+
+      // Pulisci la selezione
+      this.selectedMovies.set(new Set());
+
+      alert(`${selectedIds.length} film rimossi con successo!`);
+    } catch (error) {
+      console.error('Error removing movies:', error);
+      alert('Errore nella rimozione dei film: ' + error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async includeSelectedMovies(): Promise<void> {
+    const selectedIds = Array.from(this.selectedMovies());
+    if (selectedIds.length === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    if (!confirm(`Vuoi includere ${selectedIds.length} film selezionati?`)) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    try {
+      // Aggiorna l'indice aggregato rimuovendo tutti gli ID dalla lista excluded
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      const metadataSnap = await getDoc(metadataRef);
+      if (metadataSnap.exists()) {
+        const currentData = metadataSnap.data();
+        const updatedExcluded = (currentData['excluded'] || []).filter((id: number) => !selectedIds.includes(id));
+        await updateDoc(metadataRef, {
+          excluded: updatedExcluded
+        });
+      }
+
+      // Aggiorna lo stato locale
+      this.excludedMovies.update(set => {
+        const newSet = new Set(set);
+        selectedIds.forEach(id => newSet.delete(id));
+        return newSet;
+      });
+
+      // Pulisci la selezione
+      this.selectedMovies.set(new Set());
+
+      alert(`${selectedIds.length} film inclusi con successo!`);
+    } catch (error) {
+      console.error('Error including movies:', error);
+      alert('Errore nell\'inclusione dei film: ' + error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async unmarkSelectedMovies(): Promise<void> {
+    const selectedIds = Array.from(this.selectedMovies());
+    if (selectedIds.length === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    if (!confirm(`Vuoi demarcare ${selectedIds.length} film selezionati?`)) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    try {
+      // Aggiorna l'indice aggregato rimuovendo tutti gli ID dalla lista marked
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      const metadataSnap = await getDoc(metadataRef);
+      if (metadataSnap.exists()) {
+        const currentData = metadataSnap.data();
+        const updatedMarked = (currentData['marked'] || []).filter((id: number) => !selectedIds.includes(id));
+        await updateDoc(metadataRef, {
+          marked: updatedMarked
+        });
+      }
+
+      // Aggiorna lo stato locale
+      this.markedMovies.update(set => {
+        const newSet = new Set(set);
+        selectedIds.forEach(id => newSet.delete(id));
+        return newSet;
+      });
+
+      // Pulisci la selezione
+      this.selectedMovies.set(new Set());
+
+      alert(`${selectedIds.length} film demarcati con successo!`);
+    } catch (error) {
+      console.error('Error unmarking movies:', error);
+      alert('Errore nel demarcare i film: ' + error);
     } finally {
       this.isLoading.set(false);
     }
