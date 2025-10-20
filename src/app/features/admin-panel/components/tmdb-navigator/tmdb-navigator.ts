@@ -31,6 +31,9 @@ export class TmdbNavigator implements OnInit {
   excludedMovies = signal<Set<number>>(new Set());
   markedMovies = signal<Set<number>>(new Set());
 
+  // Set per tracciare i film selezionati
+  selectedMovies = signal<Set<number>>(new Set());
+
   async ngOnInit(): Promise<void> {
     // Carica prima lo stato globale dei film
     await this.loadAllMoviesStatus();
@@ -220,5 +223,194 @@ export class TmdbNavigator implements OnInit {
 
   isMarked(movieId: number): boolean {
     return this.markedMovies().has(movieId);
+  }
+
+  toggleMovieSelection(movieId: number): void {
+    this.selectedMovies.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(movieId)) {
+        newSet.delete(movieId);
+      } else {
+        newSet.add(movieId);
+      }
+      return newSet;
+    });
+  }
+
+  isMovieSelected(movieId: number): boolean {
+    return this.selectedMovies().has(movieId);
+  }
+
+  toggleSelectAll(): void {
+    const currentMovieIds = this.movies().map(m => m.id);
+    const allSelected = currentMovieIds.every(id => this.selectedMovies().has(id));
+    
+    this.selectedMovies.update(set => {
+      const newSet = new Set(set);
+      if (allSelected) {
+        // Deseleziona tutti i film della pagina corrente
+        currentMovieIds.forEach(id => newSet.delete(id));
+      } else {
+        // Seleziona tutti i film della pagina corrente
+        currentMovieIds.forEach(id => newSet.add(id));
+      }
+      return newSet;
+    });
+  }
+
+  areAllSelected(): boolean {
+    const currentMovieIds = this.movies().map(m => m.id);
+    return currentMovieIds.length > 0 && currentMovieIds.every(id => this.selectedMovies().has(id));
+  }
+
+  getSelectedCount(): number {
+    return this.selectedMovies().size;
+  }
+
+  async importSelectedMovies(): Promise<void> {
+    const selectedIds = Array.from(this.selectedMovies());
+    if (selectedIds.length === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    if (!confirm(`Vuoi importare ${selectedIds.length} film selezionati?`)) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    try {
+      const selectedMoviesData = this.movies().filter(m => selectedIds.includes(m.id));
+      
+      // Importa tutti i film in parallelo
+      await Promise.all(
+        selectedMoviesData.map(movie => 
+          setDoc(doc(this.firestore, 'movies', movie.id.toString()), {
+            ...movie,
+            importedAt: new Date()
+          })
+        )
+      );
+
+      // Aggiorna l'indice aggregato con tutti gli ID
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        imported: arrayUnion(...selectedIds)
+      }).catch(async () => {
+        const metadataSnap = await getDoc(metadataRef);
+        const currentData = metadataSnap.exists() ? metadataSnap.data() : { imported: [], excluded: [], marked: [] };
+        await setDoc(metadataRef, {
+          ...currentData,
+          imported: [...new Set([...(currentData['imported'] || []), ...selectedIds])]
+        });
+      });
+
+      // Aggiorna lo stato locale
+      this.importedMovies.update(set => {
+        const newSet = new Set(set);
+        selectedIds.forEach(id => newSet.add(id));
+        return newSet;
+      });
+
+      // Pulisci la selezione
+      this.selectedMovies.set(new Set());
+
+      alert(`${selectedIds.length} film importati con successo!`);
+    } catch (error) {
+      console.error('Error importing movies:', error);
+      alert('Errore nell\'importazione dei film: ' + error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async excludeSelectedMovies(): Promise<void> {
+    const selectedIds = Array.from(this.selectedMovies());
+    if (selectedIds.length === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    if (!confirm(`Vuoi escludere ${selectedIds.length} film selezionati?`)) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    try {
+      // Aggiorna l'indice aggregato con tutti gli ID
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        excluded: arrayUnion(...selectedIds)
+      }).catch(async () => {
+        const metadataSnap = await getDoc(metadataRef);
+        const currentData = metadataSnap.exists() ? metadataSnap.data() : { imported: [], excluded: [], marked: [] };
+        await setDoc(metadataRef, {
+          ...currentData,
+          excluded: [...new Set([...(currentData['excluded'] || []), ...selectedIds])]
+        });
+      });
+
+      // Aggiorna lo stato locale
+      this.excludedMovies.update(set => {
+        const newSet = new Set(set);
+        selectedIds.forEach(id => newSet.add(id));
+        return newSet;
+      });
+
+      // Pulisci la selezione
+      this.selectedMovies.set(new Set());
+
+      alert(`${selectedIds.length} film esclusi con successo!`);
+    } catch (error) {
+      console.error('Error excluding movies:', error);
+      alert('Errore nell\'esclusione dei film: ' + error);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  async markSelectedAsReviewed(): Promise<void> {
+    const selectedIds = Array.from(this.selectedMovies());
+    if (selectedIds.length === 0) {
+      alert('Nessun film selezionato!');
+      return;
+    }
+
+    if (!confirm(`Vuoi marcare come revisionati ${selectedIds.length} film selezionati?`)) {
+      return;
+    }
+
+    this.isLoading.set(true);
+    try {
+      // Aggiorna l'indice aggregato con tutti gli ID
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      await updateDoc(metadataRef, {
+        marked: arrayUnion(...selectedIds)
+      }).catch(async () => {
+        const metadataSnap = await getDoc(metadataRef);
+        const currentData = metadataSnap.exists() ? metadataSnap.data() : { imported: [], excluded: [], marked: [] };
+        await setDoc(metadataRef, {
+          ...currentData,
+          marked: [...new Set([...(currentData['marked'] || []), ...selectedIds])]
+        });
+      });
+
+      // Aggiorna lo stato locale
+      this.markedMovies.update(set => {
+        const newSet = new Set(set);
+        selectedIds.forEach(id => newSet.add(id));
+        return newSet;
+      });
+
+      // Pulisci la selezione
+      this.selectedMovies.set(new Set());
+
+      alert(`${selectedIds.length} film marcati come revisionati!`);
+    } catch (error) {
+      console.error('Error marking movies as reviewed:', error);
+      alert('Errore nel marcare i film: ' + error);
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 }

@@ -8,6 +8,14 @@
   @if (!isLoading()) {
     <p>Totale film: {{ totalResults() }} | Pagina {{ currentPage() }} di {{ totalPages() }}</p>
 
+    <div style="margin-bottom: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 5px;">
+    <strong>{{ getSelectedCount() }} film selezionati</strong>
+    <button pButton size="small" severity="success" (click)="importSelectedMovies()" style="margin-left: 10px;">Importa Selezionati</button>
+    <button pButton size="small" severity="warn" (click)="excludeSelectedMovies()" style="margin-left: 5px;">Escludi Selezionati</button>
+    <button pButton size="small" severity="info" (click)="markSelectedAsReviewed()" style="margin-left: 5px;">Marca Selezionati</button>
+    </div>
+    
+
     <p-table
       [value]="movies()"
       [paginator]="false"
@@ -16,17 +24,23 @@
     >
       <ng-template #header>
         <tr>
-          <th style="width:10%">ID</th>
-          <th style="width:40%">Titolo</th>
-          <th style="width:15%">Data Uscita</th>
-          <th style="width:8%">Importato</th>
-          <th style="width:8%">Escluso</th>
-          <th style="width:8%">Marcato</th>
-          <th style="width:11%">Azioni</th>
+          <th style="width:3%">
+            <input type="checkbox" [checked]="areAllSelected()" (change)="toggleSelectAll()" />
+          </th>
+          <th style="width:8%">ID</th>
+          <th style="width:37%">Titolo</th>
+          <th style="width:13%">Data Uscita</th>
+          <th style="width:7%">Importato</th>
+          <th style="width:7%">Escluso</th>
+          <th style="width:7%">Marcato</th>
+          <th style="width:18%">Azioni</th>
         </tr>
       </ng-template>
       <ng-template #body let-movie>
         <tr>
+          <td>
+            <input type="checkbox" [checked]="isMovieSelected(movie.id)" (change)="toggleMovieSelection(movie.id)" />
+          </td>
           <td>{{ movie.id }}</td>
           <td>{{ movie.title }}</td>
           <td>{{ movie.release_date | date:'dd/MM/yyyy' }}</td>
