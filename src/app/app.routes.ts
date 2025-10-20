@@ -8,7 +8,6 @@ import { Private } from './core/components/private/private';
 import { hasAdminRoleGuard, hasUserRoleGuard, hasNoRoleGuard } from './core/guards/role-guard';
 import { UserManagement } from './features/admin-panel/components/user-management/user-management';
 import { AccessDenied } from './features/firedemo/components/access-denied/access-denied';
-import { MovieCrud } from './features/admin-panel/components/movie-crud/movie-crud';
 import { TmdbNavigator } from './features/admin-panel/components/tmdb-navigator/tmdb-navigator';
 import { AdminPanel } from './features/admin-panel/admin-panel';
 
@@ -45,10 +44,6 @@ export const routes: Routes = [
                     {
                         path: 'user',
                         component: UserManagement
-                    },
-                    {
-                        path: 'movie',
-                        component: MovieCrud
                     },
                     {
                         path: 'tmdb',

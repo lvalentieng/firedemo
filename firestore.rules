@@ -37,6 +37,26 @@ service cloud.firestore {
                       get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
     }
 
+    match /excluded-movies/{movieId} {
+      // Solo gli admin possono leggere
+      allow read: if request.auth != null && 
+                     get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+      
+      // Solo gli admin possono scrivere (create, update, delete)
+      allow write: if request.auth != null && 
+                      get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /marked-movies/{movieId} {
+      // Solo gli admin possono leggere
+      allow read: if request.auth != null && 
+                     get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+      
+      // Solo gli admin possono scrivere (create, update, delete)
+      allow write: if request.auth != null && 
+                      get(/databases/$(database)/documents/accounts/$(request.auth.uid)).data.role == 'admin';
+    }
+
     match /version/{versionId} {
       allow read: if true;
     }

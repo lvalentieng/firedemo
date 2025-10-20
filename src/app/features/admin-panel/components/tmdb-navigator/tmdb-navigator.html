@@ -16,13 +16,14 @@
     >
       <ng-template #header>
         <tr>
-          <th style="width:10%">ID</th>
-          <th style="width:30%">Titolo</th>
-          <th style="width:15%">Data Uscita</th>
-          <th style="width:10%">Voto Medio</th>
-          <th style="width:10%">Voti</th>
-          <th style="width:10%">Popolarità</th>
-          <th style="width:15%">Lingua</th>
+          <th style="width:8%">ID</th>
+          <th style="width:25%">Titolo</th>
+          <th style="width:12%">Data Uscita</th>
+          <th style="width:8%">Voto Medio</th>
+          <th style="width:8%">Voti</th>
+          <th style="width:8%">Popolarità</th>
+          <th style="width:8%">Lingua</th>
+          <th style="width:23%">Azioni</th>
         </tr>
       </ng-template>
       <ng-template #body let-movie>
@@ -34,6 +35,11 @@
           <td>{{ movie.vote_count }}</td>
           <td>{{ movie.popularity | number:'1.0-0' }}</td>
           <td>{{ movie.original_language }}</td>
+          <td>
+            <button pButton size="small" severity="contrast" (click)="importMovie(movie)" style="margin-right: 5px;">Importa</button>
+            <button pButton size="small" severity="contrast" (click)="excludeMovie(movie.id)" style="margin-right: 5px;">Escludi</button>
+            <button pButton size="small" severity="contrast" (click)="markAsReviewed(movie.id)">Marcalo</button>
+          </td>
         </tr>
       </ng-template>
     </p-table>
