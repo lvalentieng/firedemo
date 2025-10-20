@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { TmdbMovie } from '../../../../core/models/tmdb-model';
 import { TmdbService } from '../../../../core/services/tmdb-service';
 import { PaginatorModule } from 'primeng/paginator';
-import { Firestore, collection, addDoc, doc, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, doc, setDoc, getDoc } from '@angular/fire/firestore';
 import { ButtonModule } from 'primeng/button';
 
 @Component({
@@ -26,6 +26,11 @@ export class TmdbNavigator implements OnInit {
   totalResults = signal(0);
   hasLoaded = signal(false);
 
+  // Set per tracciare lo stato dei film
+  importedMovies = signal<Set<number>>(new Set());
+  excludedMovies = signal<Set<number>>(new Set());
+  markedMovies = signal<Set<number>>(new Set());
+
   async ngOnInit(): Promise<void> {
     await this.loadMovies(0);
   }
@@ -34,7 +39,7 @@ export class TmdbNavigator implements OnInit {
     this.isLoading.set(true);
     try {
       this.tmdbService.getTopRatedMovies(page).subscribe({
-        next: (response) => {
+        next: async (response) => {
           this.movies.set(response.results);
           this.currentPage.set(response.page);
           this.totalPages.set(response.total_pages);
@@ -44,6 +49,9 @@ export class TmdbNavigator implements OnInit {
           if (page === 0) {
             this.firstElementPage.set(0);
           }
+
+          // Carica lo stato di tutti i film della pagina
+          await this.loadMoviesStatus(response.results);
 
           this.isLoading.set(false);
         },
@@ -79,6 +87,14 @@ export class TmdbNavigator implements OnInit {
         ...movie,
         importedAt: new Date()
       });
+      
+      // Aggiorna lo stato locale
+      this.importedMovies.update(set => {
+        const newSet = new Set(set);
+        newSet.add(movie.id);
+        return newSet;
+      });
+      
       alert(`Film "${movie.title}" importato con successo!`);
     } catch (error) {
       console.error('Error importing movie:', error);
@@ -92,6 +108,14 @@ export class TmdbNavigator implements OnInit {
       await setDoc(excludedDoc, {
         excludedAt: new Date()
       });
+      
+      // Aggiorna lo stato locale
+      this.excludedMovies.update(set => {
+        const newSet = new Set(set);
+        newSet.add(movieId);
+        return newSet;
+      });
+      
       alert(`Film ID ${movieId} escluso con successo!`);
     } catch (error) {
       console.error('Error excluding movie:', error);
@@ -105,10 +129,61 @@ export class TmdbNavigator implements OnInit {
       await setDoc(markedDoc, {
         markedAt: new Date()
       });
+      
+      // Aggiorna lo stato locale
+      this.markedMovies.update(set => {
+        const newSet = new Set(set);
+        newSet.add(movieId);
+        return newSet;
+      });
+      
       alert(`Film ID ${movieId} marcato come revisionato!`);
     } catch (error) {
       console.error('Error marking movie as reviewed:', error);
       alert('Errore nel marcare il film: ' + error);
     }
+  }
+
+  async loadMoviesStatus(movies: TmdbMovie[]): Promise<void> {
+    const movieIds = movies.map(m => m.id);
+    
+    // Carica gli stati in parallelo
+    const [imported, excluded, marked] = await Promise.all([
+      this.checkMoviesInCollection('movies', movieIds),
+      this.checkMoviesInCollection('excluded-movies', movieIds),
+      this.checkMoviesInCollection('marked-movies', movieIds)
+    ]);
+
+    this.importedMovies.set(imported);
+    this.excludedMovies.set(excluded);
+    this.markedMovies.set(marked);
+  }
+
+  async checkMoviesInCollection(collectionName: string, movieIds: number[]): Promise<Set<number>> {
+    const existingIds = new Set<number>();
+    
+    await Promise.all(
+      movieIds.map(async (id) => {
+        const docRef = doc(this.firestore, collectionName, id.toString());
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          existingIds.add(id);
+        }
+      })
+    );
+    
+    return existingIds;
+  }
+
+  isImported(movieId: number): boolean {
+    return this.importedMovies().has(movieId);
+  }
+
+  isExcluded(movieId: number): boolean {
+    return this.excludedMovies().has(movieId);
+  }
+
+  isMarked(movieId: number): boolean {
+    return this.markedMovies().has(movieId);
   }
 }

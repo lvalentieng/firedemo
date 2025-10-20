@@ -16,14 +16,13 @@
     >
       <ng-template #header>
         <tr>
-          <th style="width:8%">ID</th>
-          <th style="width:25%">Titolo</th>
-          <th style="width:12%">Data Uscita</th>
-          <th style="width:8%">Voto Medio</th>
-          <th style="width:8%">Voti</th>
-          <th style="width:8%">Popolarità</th>
-          <th style="width:8%">Lingua</th>
-          <th style="width:23%">Azioni</th>
+          <th style="width:10%">ID</th>
+          <th style="width:40%">Titolo</th>
+          <th style="width:15%">Data Uscita</th>
+          <th style="width:8%">Importato</th>
+          <th style="width:8%">Escluso</th>
+          <th style="width:8%">Marcato</th>
+          <th style="width:11%">Azioni</th>
         </tr>
       </ng-template>
       <ng-template #body let-movie>
@@ -31,10 +30,9 @@
           <td>{{ movie.id }}</td>
           <td>{{ movie.title }}</td>
           <td>{{ movie.release_date | date:'dd/MM/yyyy' }}</td>
-          <td>{{ movie.vote_average | number:'1.1-1' }}</td>
-          <td>{{ movie.vote_count }}</td>
-          <td>{{ movie.popularity | number:'1.0-0' }}</td>
-          <td>{{ movie.original_language }}</td>
+          <td>{{ isImported(movie.id) ? 'SI' : 'NO' }}</td>
+          <td>{{ isExcluded(movie.id) ? 'SI' : 'NO' }}</td>
+          <td>{{ isMarked(movie.id) ? 'SI' : 'NO' }}</td>
           <td>
             <button pButton size="small" severity="contrast" (click)="importMovie(movie)" style="margin-right: 5px;">Importa</button>
             <button pButton size="small" severity="contrast" (click)="excludeMovie(movie.id)" style="margin-right: 5px;">Escludi</button>
