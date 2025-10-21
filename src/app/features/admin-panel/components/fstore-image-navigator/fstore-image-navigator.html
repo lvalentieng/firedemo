@@ -1,0 +1,49 @@
+<div class="fstore-image-navigator">
+  @if (isLoading()) {
+    <p>Caricamento immagini da Firestore...</p>
+  }
+
+  @if (!isLoading()) {
+    <p-panel [header]="'Immagini del film ID: ' + movieId()">
+      <p>Totale immagini: {{ images().length }}</p>
+    </p-panel>
+
+    <p-table
+      [value]="images()"
+      [paginator]="false"
+      [tableStyle]="{ 'min-width': '70rem' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th style="width:15%">ID</th>
+          <th style="width:10%">Anteprima</th>
+          <th style="width:25%">File Path</th>
+          <th style="width:8%">Larghezza</th>
+          <th style="width:8%">Altezza</th>
+          <th style="width:8%">Aspect Ratio</th>
+          <th style="width:8%">Voto Medio</th>
+          <th style="width:18%">Azioni</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-image>
+        <tr>
+          <td style="font-size: 0.8em;">{{ image.id }}</td>
+          <td>
+            <img [src]="getImageUrl(image.file_path)" 
+                 [alt]="image.file_path" 
+                 style="max-width: 100px; max-height: 60px; object-fit: cover;" 
+            />
+          </td>
+          <td style="font-size: 0.85em;">{{ image.file_path }}</td>
+          <td>{{ image.width }}</td>
+          <td>{{ image.height }}</td>
+          <td>{{ image.aspect_ratio | number:'1.2-2' }}</td>
+          <td>{{ image.vote_average | number:'1.1-1' }}</td>
+          <td>
+            <!-- Azioni verranno aggiunte successivamente -->
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

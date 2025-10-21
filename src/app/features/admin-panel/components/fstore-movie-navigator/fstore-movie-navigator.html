@@ -51,10 +51,12 @@
             }
             
             @if (isMarked(movie.id)) {
-              <button pButton size="small" severity="help" (click)="unmarkMovie(movie.id)">Demarca</button>
+              <button pButton size="small" severity="help" (click)="unmarkMovie(movie.id)" style="margin-right: 5px;">Demarca</button>
             } @else {
-              <button pButton size="small" severity="info" (click)="markAsReviewed(movie.id)">Marca</button>
+              <button pButton size="small" severity="info" (click)="markAsReviewed(movie.id)" style="margin-right: 5px;">Marca</button>
             }
+            
+            <a [routerLink]="['/private/admin/movies', movie.id, 'images']" pButton size="small" severity="contrast" icon="pi pi-images" label="Immagini"></a>
           </td>
         </tr>
       </ng-template>

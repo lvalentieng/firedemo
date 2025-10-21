@@ -8,10 +8,11 @@ import { ButtonModule } from 'primeng/button';
 import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-fstore-movie-navigator',
-  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, SelectModule, FormsModule],
+  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, SelectModule, FormsModule, RouterLink],
   templateUrl: './fstore-movie-navigator.html',
   styleUrl: './fstore-movie-navigator.css'
 })

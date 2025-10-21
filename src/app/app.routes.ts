@@ -11,6 +11,7 @@ import { AccessDenied } from './features/firedemo/components/access-denied/acces
 import { TmdbNavigator } from './features/admin-panel/components/tmdb-navigator/tmdb-navigator';
 import { AdminPanel } from './features/admin-panel/admin-panel';
 import { FstoreMovieNavigator } from './features/admin-panel/components/fstore-movie-navigator/fstore-movie-navigator';
+import { FstoreImageNavigator } from './features/admin-panel/components/fstore-image-navigator/fstore-image-navigator';
 
 export const routes: Routes = [
     {
@@ -53,6 +54,10 @@ export const routes: Routes = [
                     {
                         path: 'movies',
                         component: FstoreMovieNavigator
+                    },
+                    {
+                        path: 'movies/:id/images',
+                        component: FstoreImageNavigator
                     },
                     {
                         path: '',
