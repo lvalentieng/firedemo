@@ -33,12 +33,10 @@
             <input type="checkbox" [checked]="areAllSelected()" (change)="toggleSelectAll()" />
           </th>
           <th style="width:8%">ID</th>
-          <th style="width:37%">Titolo</th>
-          <th style="width:13%">Data Uscita</th>
-          <th style="width:7%">Importato</th>
-          <th style="width:7%">Escluso</th>
-          <th style="width:7%">Marcato</th>
-          <th style="width:18%">Azioni</th>
+          <th style="width:42%">Titolo</th>
+          <th style="width:15%">Data Uscita</th>
+          <th style="width:10%">Importato</th>
+          <th style="width:22%">Azioni</th>
         </tr>
       </ng-template>
       <ng-template #body let-movie>
@@ -50,25 +48,11 @@
           <td>{{ movie.title }}</td>
           <td>{{ movie.release_date | date:'dd/MM/yyyy' }}</td>
           <td>{{ isImported(movie.id) ? 'SI' : 'NO' }}</td>
-          <td>{{ isExcluded(movie.id) ? 'SI' : 'NO' }}</td>
-          <td>{{ isMarked(movie.id) ? 'SI' : 'NO' }}</td>
           <td>
             @if (isImported(movie.id)) {
-              <button pButton size="small" severity="danger" (click)="removeMovie(movie.id)" style="margin-right: 5px;">Rimuovi</button>
+              <button pButton size="small" severity="danger" (click)="removeMovie(movie.id)">Rimuovi</button>
             } @else {
-              <button pButton size="small" severity="success" (click)="importMovie(movie)" style="margin-right: 5px;">Importa</button>
-            }
-            
-            @if (isExcluded(movie.id)) {
-              <button pButton size="small" severity="secondary" (click)="includeMovie(movie.id)" style="margin-right: 5px;">Includi</button>
-            } @else {
-              <button pButton size="small" severity="warn" (click)="excludeMovie(movie.id)" style="margin-right: 5px;">Escludi</button>
-            }
-            
-            @if (isMarked(movie.id)) {
-              <button pButton size="small" severity="help" (click)="unmarkMovie(movie.id)">Demarca</button>
-            } @else {
-              <button pButton size="small" severity="info" (click)="markAsReviewed(movie.id)">Marca</button>
+              <button pButton size="small" severity="success" (click)="importMovie(movie)">Importa</button>
             }
           </td>
         </tr>

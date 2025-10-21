@@ -16,29 +16,62 @@
     >
       <ng-template #header>
         <tr>
-          <th style="width:8%">ID</th>
-          <th style="width:30%">Titolo</th>
-          <th style="width:12%">Data Uscita</th>
-          <th style="width:8%">Voto Medio</th>
+          <th style="width:3%">
+            <input type="checkbox" [checked]="areAllSelected()" (change)="toggleSelectAll()" />
+          </th>
+          <th style="width:7%">ID</th>
+          <th style="width:25%">Titolo</th>
+          <th style="width:10%">Data Uscita</th>
+          <th style="width:7%">Voto</th>
           <th style="width:8%">Popolarità</th>
-          <th style="width:12%">Data Importazione</th>
-          <th style="width:22%">Azioni</th>
+          <th style="width:7%">Escluso</th>
+          <th style="width:7%">Marcato</th>
+          <th style="width:12%">Data Import</th>
+          <th style="width:14%">Azioni</th>
         </tr>
       </ng-template>
       <ng-template #body let-movie>
         <tr>
+          <td>
+            <input type="checkbox" [checked]="isMovieSelected(movie.id)" (change)="toggleMovieSelection(movie.id)" />
+          </td>
           <td>{{ movie.id }}</td>
           <td>{{ movie.title }}</td>
           <td>{{ movie.release_date | date:'dd/MM/yyyy' }}</td>
           <td>{{ movie.vote_average | number:'1.1-1' }}</td>
           <td>{{ movie.popularity | number:'1.0-0' }}</td>
+          <td>{{ isExcluded(movie.id) ? 'SI' : 'NO' }}</td>
+          <td>{{ isMarked(movie.id) ? 'SI' : 'NO' }}</td>
           <td>{{ movie.importedAt?.toDate() | date:'dd/MM/yyyy HH:mm' }}</td>
           <td>
-            <!-- Azioni verranno aggiunte successivamente -->
+            @if (isExcluded(movie.id)) {
+              <button pButton size="small" severity="secondary" (click)="includeMovie(movie.id)" style="margin-right: 5px;">Includi</button>
+            } @else {
+              <button pButton size="small" severity="warn" (click)="excludeMovie(movie.id)" style="margin-right: 5px;">Escludi</button>
+            }
+            
+            @if (isMarked(movie.id)) {
+              <button pButton size="small" severity="help" (click)="unmarkMovie(movie.id)">Demarca</button>
+            } @else {
+              <button pButton size="small" severity="info" (click)="markAsReviewed(movie.id)">Marca</button>
+            }
           </td>
         </tr>
       </ng-template>
     </p-table>
+
+    <div style="margin-top: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 5px; display: flex; align-items: center; gap: 10px;">
+      <strong>{{ getSelectedCount() }} film selezionati</strong>
+      <p-select 
+        [options]="batchOperations" 
+        [(ngModel)]="selectedOperation" 
+        optionLabel="label" 
+        optionValue="value" 
+        placeholder="Seleziona operazione"
+        [style]="{'min-width': '200px'}"
+      />
+      <button pButton label="Applica" [disabled]="!selectedOperation() || getSelectedCount() === 0" (click)="applyBatchOperation()"></button>
+    </div>
 
     <div class="flex justify-end w-full bg-white">
       <p-paginator 

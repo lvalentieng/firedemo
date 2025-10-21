@@ -35,8 +35,6 @@ export class TmdbNavigator implements OnInit {
 
   // Set per tracciare lo stato dei film
   importedMovies = signal<Set<number>>(new Set());
-  excludedMovies = signal<Set<number>>(new Set());
-  markedMovies = signal<Set<number>>(new Set());
 
   // Set per tracciare i film selezionati
   selectedMovies = signal<Set<number>>(new Set());
@@ -49,11 +47,7 @@ export class TmdbNavigator implements OnInit {
   selectedOperation = signal<string | null>(null);
   batchOperations = [
     { label: 'Importa', value: 'import' },
-    { label: 'Rimuovi', value: 'remove' },
-    { label: 'Escludi', value: 'exclude' },
-    { label: 'Includi', value: 'include' },
-    { label: 'Marca', value: 'mark' },
-    { label: 'Demarca', value: 'unmark' }
+    { label: 'Rimuovi', value: 'remove' }
   ];
 
   async ngOnInit(): Promise<void> {
@@ -224,61 +218,11 @@ export class TmdbNavigator implements OnInit {
   }
 
   async excludeMovie(movieId: number): Promise<void> {
-    try {
-      // SOLO aggiorna l'indice aggregato
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      await updateDoc(metadataRef, {
-        excluded: arrayUnion(movieId)
-      }).catch(async () => {
-        // Se il documento non esiste, crealo
-        await setDoc(metadataRef, {
-          imported: [],
-          excluded: [movieId],
-          marked: []
-        });
-      });
-      
-      // Aggiorna lo stato locale
-      this.excludedMovies.update(set => {
-        const newSet = new Set(set);
-        newSet.add(movieId);
-        return newSet;
-      });
-      
-      alert(`Film ID ${movieId} escluso con successo!`);
-    } catch (error) {
-      console.error('Error excluding movie:', error);
-      alert('Errore nell\'esclusione del film: ' + error);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async markAsReviewed(movieId: number): Promise<void> {
-    try {
-      // SOLO aggiorna l'indice aggregato
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      await updateDoc(metadataRef, {
-        marked: arrayUnion(movieId)
-      }).catch(async () => {
-        // Se il documento non esiste, crealo
-        await setDoc(metadataRef, {
-          imported: [],
-          excluded: [],
-          marked: [movieId]
-        });
-      });
-      
-      // Aggiorna lo stato locale
-      this.markedMovies.update(set => {
-        const newSet = new Set(set);
-        newSet.add(movieId);
-        return newSet;
-      });
-      
-      alert(`Film ID ${movieId} marcato come revisionato!`);
-    } catch (error) {
-      console.error('Error marking movie as reviewed:', error);
-      alert('Errore nel marcare il film: ' + error);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async removeMovie(movieId: number): Promise<void> {
@@ -308,47 +252,11 @@ export class TmdbNavigator implements OnInit {
   }
 
   async includeMovie(movieId: number): Promise<void> {
-    try {
-      // Rimuovi dall'indice di esclusione
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      await updateDoc(metadataRef, {
-        excluded: arrayRemove(movieId)
-      });
-      
-      // Aggiorna lo stato locale
-      this.excludedMovies.update(set => {
-        const newSet = new Set(set);
-        newSet.delete(movieId);
-        return newSet;
-      });
-      
-      alert(`Film ID ${movieId} incluso con successo!`);
-    } catch (error) {
-      console.error('Error including movie:', error);
-      alert('Errore nell\'inclusione del film: ' + error);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async unmarkMovie(movieId: number): Promise<void> {
-    try {
-      // Rimuovi dall'indice di marcatura
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      await updateDoc(metadataRef, {
-        marked: arrayRemove(movieId)
-      });
-      
-      // Aggiorna lo stato locale
-      this.markedMovies.update(set => {
-        const newSet = new Set(set);
-        newSet.delete(movieId);
-        return newSet;
-      });
-      
-      alert(`Film ID ${movieId} demarcato con successo!`);
-    } catch (error) {
-      console.error('Error unmarking movie:', error);
-      alert('Errore nel demarcare il film: ' + error);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async loadAllMoviesStatus(): Promise<void> {
@@ -359,8 +267,6 @@ export class TmdbNavigator implements OnInit {
       if (metadataSnap.exists()) {
         const data = metadataSnap.data();
         this.importedMovies.set(new Set(data['imported'] || []));
-        this.excludedMovies.set(new Set(data['excluded'] || []));
-        this.markedMovies.set(new Set(data['marked'] || []));
       } else {
         // Crea il documento se non esiste
         await setDoc(metadataRef, {
@@ -390,11 +296,13 @@ export class TmdbNavigator implements OnInit {
   }
 
   isExcluded(movieId: number): boolean {
-    return this.excludedMovies().has(movieId);
+    // RIMOSSO - Spostato in fstore-movie-navigator
+    return false;
   }
 
   isMarked(movieId: number): boolean {
-    return this.markedMovies().has(movieId);
+    // RIMOSSO - Spostato in fstore-movie-navigator
+    return false;
   }
 
   toggleMovieSelection(movieId: number): void {
@@ -547,93 +455,11 @@ export class TmdbNavigator implements OnInit {
   }
 
   async excludeSelectedMovies(): Promise<void> {
-    const selectedIds = Array.from(this.selectedMovies());
-    if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
-      return;
-    }
-
-    if (!confirm(`Vuoi escludere ${selectedIds.length} film selezionati?`)) {
-      return;
-    }
-
-    this.isLoading.set(true);
-    try {
-      // Aggiorna l'indice aggregato con tutti gli ID
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      await updateDoc(metadataRef, {
-        excluded: arrayUnion(...selectedIds)
-      }).catch(async () => {
-        const metadataSnap = await getDoc(metadataRef);
-        const currentData = metadataSnap.exists() ? metadataSnap.data() : { imported: [], excluded: [], marked: [] };
-        await setDoc(metadataRef, {
-          ...currentData,
-          excluded: [...new Set([...(currentData['excluded'] || []), ...selectedIds])]
-        });
-      });
-
-      // Aggiorna lo stato locale
-      this.excludedMovies.update(set => {
-        const newSet = new Set(set);
-        selectedIds.forEach(id => newSet.add(id));
-        return newSet;
-      });
-
-      // Pulisci la selezione
-      this.selectedMovies.set(new Set());
-
-      alert(`${selectedIds.length} film esclusi con successo!`);
-    } catch (error) {
-      console.error('Error excluding movies:', error);
-      alert('Errore nell\'esclusione dei film: ' + error);
-    } finally {
-      this.isLoading.set(false);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async markSelectedAsReviewed(): Promise<void> {
-    const selectedIds = Array.from(this.selectedMovies());
-    if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
-      return;
-    }
-
-    if (!confirm(`Vuoi marcare come revisionati ${selectedIds.length} film selezionati?`)) {
-      return;
-    }
-
-    this.isLoading.set(true);
-    try {
-      // Aggiorna l'indice aggregato con tutti gli ID
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      await updateDoc(metadataRef, {
-        marked: arrayUnion(...selectedIds)
-      }).catch(async () => {
-        const metadataSnap = await getDoc(metadataRef);
-        const currentData = metadataSnap.exists() ? metadataSnap.data() : { imported: [], excluded: [], marked: [] };
-        await setDoc(metadataRef, {
-          ...currentData,
-          marked: [...new Set([...(currentData['marked'] || []), ...selectedIds])]
-        });
-      });
-
-      // Aggiorna lo stato locale
-      this.markedMovies.update(set => {
-        const newSet = new Set(set);
-        selectedIds.forEach(id => newSet.add(id));
-        return newSet;
-      });
-
-      // Pulisci la selezione
-      this.selectedMovies.set(new Set());
-
-      alert(`${selectedIds.length} film marcati come revisionati!`);
-    } catch (error) {
-      console.error('Error marking movies as reviewed:', error);
-      alert('Errore nel marcare i film: ' + error);
-    } finally {
-      this.isLoading.set(false);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async removeSelectedMovies(): Promise<void> {
@@ -687,89 +513,11 @@ export class TmdbNavigator implements OnInit {
   }
 
   async includeSelectedMovies(): Promise<void> {
-    const selectedIds = Array.from(this.selectedMovies());
-    if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
-      return;
-    }
-
-    if (!confirm(`Vuoi includere ${selectedIds.length} film selezionati?`)) {
-      return;
-    }
-
-    this.isLoading.set(true);
-    try {
-      // Aggiorna l'indice aggregato rimuovendo tutti gli ID dalla lista excluded
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      const metadataSnap = await getDoc(metadataRef);
-      if (metadataSnap.exists()) {
-        const currentData = metadataSnap.data();
-        const updatedExcluded = (currentData['excluded'] || []).filter((id: number) => !selectedIds.includes(id));
-        await updateDoc(metadataRef, {
-          excluded: updatedExcluded
-        });
-      }
-
-      // Aggiorna lo stato locale
-      this.excludedMovies.update(set => {
-        const newSet = new Set(set);
-        selectedIds.forEach(id => newSet.delete(id));
-        return newSet;
-      });
-
-      // Pulisci la selezione
-      this.selectedMovies.set(new Set());
-
-      alert(`${selectedIds.length} film inclusi con successo!`);
-    } catch (error) {
-      console.error('Error including movies:', error);
-      alert('Errore nell\'inclusione dei film: ' + error);
-    } finally {
-      this.isLoading.set(false);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async unmarkSelectedMovies(): Promise<void> {
-    const selectedIds = Array.from(this.selectedMovies());
-    if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
-      return;
-    }
-
-    if (!confirm(`Vuoi demarcare ${selectedIds.length} film selezionati?`)) {
-      return;
-    }
-
-    this.isLoading.set(true);
-    try {
-      // Aggiorna l'indice aggregato rimuovendo tutti gli ID dalla lista marked
-      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
-      const metadataSnap = await getDoc(metadataRef);
-      if (metadataSnap.exists()) {
-        const currentData = metadataSnap.data();
-        const updatedMarked = (currentData['marked'] || []).filter((id: number) => !selectedIds.includes(id));
-        await updateDoc(metadataRef, {
-          marked: updatedMarked
-        });
-      }
-
-      // Aggiorna lo stato locale
-      this.markedMovies.update(set => {
-        const newSet = new Set(set);
-        selectedIds.forEach(id => newSet.delete(id));
-        return newSet;
-      });
-
-      // Pulisci la selezione
-      this.selectedMovies.set(new Set());
-
-      alert(`${selectedIds.length} film demarcati con successo!`);
-    } catch (error) {
-      console.error('Error unmarking movies:', error);
-      alert('Errore nel demarcare i film: ' + error);
-    } finally {
-      this.isLoading.set(false);
-    }
+    // RIMOSSO - Spostato in fstore-movie-navigator
   }
 
   async applyBatchOperation(): Promise<void> {
@@ -790,18 +538,6 @@ export class TmdbNavigator implements OnInit {
         break;
       case 'remove':
         await this.removeSelectedMovies();
-        break;
-      case 'exclude':
-        await this.excludeSelectedMovies();
-        break;
-      case 'include':
-        await this.includeSelectedMovies();
-        break;
-      case 'mark':
-        await this.markSelectedAsReviewed();
-        break;
-      case 'unmark':
-        await this.unmarkSelectedMovies();
         break;
     }
   }
