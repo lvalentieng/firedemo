@@ -8,10 +8,11 @@ import { ButtonModule } from 'primeng/button';
 import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
+import { ImageModule } from 'primeng/image';
 
 @Component({
   selector: 'app-fstore-image-navigator',
-  imports: [TableModule, CommonModule, ButtonModule, PanelModule, SelectModule, FormsModule],
+  imports: [TableModule, CommonModule, ButtonModule, PanelModule, SelectModule, FormsModule, ImageModule],
   templateUrl: './fstore-image-navigator.html',
   styleUrl: './fstore-image-navigator.css'
 })

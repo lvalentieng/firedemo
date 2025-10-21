@@ -4,28 +4,6 @@
   }
 
   @if (!isLoading()) {
-    <p-panel [header]="'Immagini del film ID: ' + movieId()">
-      <p>Totale immagini: {{ images().length }}</p>
-      @if (getSelectedCount() > 0) {
-        <p>Immagini selezionate: {{ getSelectedCount() }}</p>
-        <div class="batch-operations" style="margin-top: 10px; display: flex; gap: 10px;">
-          <p-select 
-            [options]="batchOperations" 
-            [(ngModel)]="selectedOperation" 
-            optionLabel="label" 
-            optionValue="value"
-            placeholder="Seleziona operazione"
-          />
-          <p-button 
-            label="Applica" 
-            icon="pi pi-check" 
-            (onClick)="applyBatchOperation()"
-            [disabled]="!selectedOperation() || getSelectedCount() === 0"
-          />
-        </div>
-      }
-    </p-panel>
-
     <p-table
       [value]="images()"
       [paginator]="false"
@@ -61,9 +39,12 @@
             />
           </td>
           <td>
-            <img [src]="getImageUrl(image.file_path)" 
-                 [alt]="image.file_path" 
-                 style="max-width: 100px; max-height: 60px; object-fit: cover;" 
+            <p-image 
+              [src]="getImageUrl(image.file_path)" 
+              [alt]="image.file_path" 
+              width="100"
+              [preview]="true"
+              [style]="{ 'max-height': '60px', 'object-fit': 'cover' }"
             />
           </td>
           <td style="font-size: 0.8em;">{{ image.id }}</td>
@@ -101,5 +82,28 @@
         </tr>
       </ng-template>
     </p-table>
+
+    <p-panel [header]="'Immagini del film ID: ' + movieId()">
+      <p>Totale immagini: {{ images().length }}</p>
+    <p>Immagini selezionate: {{ getSelectedCount() }}</p>
+    <div class="batch-operations" style="margin-top: 10px; display: flex; gap: 10px;">
+        <p-select 
+        [options]="batchOperations" 
+        [(ngModel)]="selectedOperation" 
+        optionLabel="label" 
+        optionValue="value"
+        placeholder="Seleziona operazione"
+        />
+        <p-button 
+        label="Applica" 
+        icon="pi pi-check" 
+        (onClick)="applyBatchOperation()"
+        [disabled]="!selectedOperation() || getSelectedCount() === 0"
+        />
+    </div>
+      
+    </p-panel>
+
+    
   }
 </div>
