@@ -11,6 +11,7 @@ import { Menubar } from 'primeng/menubar';
 })
 export class AdminPanel {
   items: MenuItem[] = [
+    { label: 'Movies Navigator', icon: 'pi pi-search', routerLink: '/private/admin/movies' },
     { label: 'TMDB Navigator', icon: 'pi pi-search', routerLink: '/private/admin/tmdb' },
     { label: 'User Management', icon: 'pi pi-users', routerLink: '/private/admin/user' },
     

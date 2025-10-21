@@ -10,6 +10,7 @@ import { UserManagement } from './features/admin-panel/components/user-managemen
 import { AccessDenied } from './features/firedemo/components/access-denied/access-denied';
 import { TmdbNavigator } from './features/admin-panel/components/tmdb-navigator/tmdb-navigator';
 import { AdminPanel } from './features/admin-panel/admin-panel';
+import { FstoreMovieNavigator } from './features/admin-panel/components/fstore-movie-navigator/fstore-movie-navigator';
 
 export const routes: Routes = [
     {
@@ -50,8 +51,12 @@ export const routes: Routes = [
                         component: TmdbNavigator
                     },
                     {
+                        path: 'movies',
+                        component: FstoreMovieNavigator
+                    },
+                    {
                         path: '',
-                        redirectTo: '/private/admin/tmdb',
+                        redirectTo: '/private/admin/movies',
                         pathMatch: 'full'
                     }
                 ]
