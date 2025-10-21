@@ -31,6 +31,7 @@ export interface TmdbImage {
   vote_average: number;
   vote_count: number;
   width: number;
+  obscured?: boolean; // Attributo custom per oscurare l'immagine
 }
 
 export interface TmdbImagesResponse {
