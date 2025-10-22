@@ -162,20 +162,6 @@ export class TmdbNavigator implements OnInit {
                 
                 await Promise.all(imagePromises);
                 
-                // Crea metadati per tracking delle immagini importate
-                const imageIds = backdrops.map(backdrop => {
-                  const cleanPath = backdrop.file_path
-                    .replace(/\//g, '_')
-                    .replace(/[^a-zA-Z0-9_-]/g, '');
-                  return `tmdb-${cleanPath}`;
-                });
-                
-                const imageMetadataRef = doc(this.firestore, 'movies', movie.id.toString(), 'metadata', 'image-status');
-                await setDoc(imageMetadataRef, {
-                  imported: imageIds,
-                  excluded: []
-                });
-                
                 console.log(`Importate ${backdrops.length} immagini per il film "${movie.title}"`);
               }
               resolve();
@@ -393,20 +379,6 @@ export class TmdbNavigator implements OnInit {
                     });
                     
                     await Promise.all(imagePromises);
-                    
-                    // Crea metadati per tracking
-                    const imageIds = backdrops.map(backdrop => {
-                      const cleanPath = backdrop.file_path
-                        .replace(/\//g, '_')
-                        .replace(/[^a-zA-Z0-9_-]/g, '');
-                      return `tmdb${cleanPath}`;
-                    });
-                    
-                    const imageMetadataRef = doc(this.firestore, 'movies', movie.id.toString(), 'metadata', 'image-status');
-                    await setDoc(imageMetadataRef, {
-                      imported: imageIds,
-                      excluded: []
-                    });
                   }
                   resolve();
                 } catch (err) {

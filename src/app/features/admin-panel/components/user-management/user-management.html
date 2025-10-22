@@ -1,91 +1,93 @@
 <div class="admin-panel">
-  <h1>Pannello Amministrazione - Gestione Utenti</h1>
-
   @if (isLoading()) {
     <p>Caricamento utenti...</p>
   }
 
   @if (!isLoading()) {
-    <div>
-      <!-- Filtri -->
-      <div class="filters">
-        <label>
-          Filtra per ruolo:
-          <select [(ngModel)]="filterRole" (change)="applyFilter()">
-            <option value="all">Tutti</option>
-            <option value="pending">Pending</option>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
-        <span>Totale: {{ filteredAccounts().length }} utenti</span>
-      </div>
-
-      <!-- Tabella utenti -->
-      <table border="1" cellpadding="10" cellspacing="0">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>UID</th>
-            <th>Ruolo Attuale</th>
-            <th>Data Creazione</th>
-            <th>Azioni</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (account of paginatedAccounts(); track account.uid) {
-            <tr>
-              <td>{{ account.displayName }}</td>
-              <td>{{ account.email }}</td>
-              <td>{{ account.uid }}</td>
-              <td>
-                <strong [style.color]="account.role === 'admin' ? 'green' : account.role === 'user' ? 'blue' : 'orange'">
-                  {{ account.role }}
-                </strong>
-              </td>
-              <td>{{ account.createdAt }}</td>
-              <td>
-                <button (click)="updateRole(account.uid, 'pending')" 
-                        [disabled]="account.role === 'pending'">
-                  → Pending
-                </button>
-                <button (click)="updateRole(account.uid, 'user')" 
-                        [disabled]="account.role === 'user'">
-                  → User
-                </button>
-                <button (click)="updateRole(account.uid, 'admin')" 
-                        [disabled]="account.role === 'admin'">
-                  → Admin
-                </button>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="6">Nessun utente trovato</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <!-- Paginazione -->
-      @if (totalPages() > 1) {
-        <div class="pagination">
-          <button (click)="previousPage()" [disabled]="currentPage() === 1">← Precedente</button>
-          
-          @for (page of pageNumbers(); track page) {
-            <button (click)="goToPage(page)" 
-                    [style.fontWeight]="currentPage() === page ? 'bold' : 'normal'"
-                    [disabled]="currentPage() === page">
-              {{ page }}
-            </button>
-          }
-          
-          <button (click)="nextPage()" [disabled]="currentPage() === totalPages()">Successiva →</button>
-          
-          <span>Pagina {{ currentPage() }} di {{ totalPages() }}</span>
+    <p-panel header="Gestione Utenti">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <label>Filtra per ruolo:</label>
+          <p-select 
+            [options]="filterOptions" 
+            [(ngModel)]="filterRole" 
+            optionLabel="label" 
+            optionValue="value"
+            (onChange)="applyFilter()"
+            [style]="{'min-width': '150px'}"
+          />
         </div>
-      }
+        <span><strong>Totale: {{ filteredAccounts().length }} utenti</strong></span>
+      </div>
+    </p-panel>
+
+    <p-table
+      [value]="paginatedAccounts()"
+      [paginator]="false"
+      [tableStyle]="{ 'min-width': '70rem' }"
+    >
+      <ng-template #header>
+        <tr>
+          <th style="width:20%">Nome</th>
+          <th style="width:25%">Email</th>
+          <th style="width:25%">UID</th>
+          <th style="width:10%">Ruolo</th>
+          <th style="width:12%">Data Creazione</th>
+          <th style="width:20%">Azioni</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-account>
+        <tr>
+          <td>{{ account.displayName }}</td>
+          <td>{{ account.email }}</td>
+          <td style="font-size: 0.85em;">{{ account.uid }}</td>
+          <td>
+            <span [style.color]="getRoleColor(account.role)" style="font-weight: bold; text-transform: uppercase;">
+              {{ account.role }}
+            </span>
+          </td>
+          <td>{{ account.createdAt }}</td>
+          <td>
+            <p-button 
+              label="Pending" 
+              size="small" 
+              severity="warn"
+              (onClick)="updateRole(account.uid, 'pending')" 
+              [disabled]="account.role === 'pending'"
+              [style]="{'margin-right': '5px'}"
+            />
+            <p-button 
+              label="User" 
+              size="small" 
+              severity="info"
+              (onClick)="updateRole(account.uid, 'user')" 
+              [disabled]="account.role === 'user'"
+              [style]="{'margin-right': '5px'}"
+            />
+            <p-button 
+              label="Admin" 
+              size="small" 
+              severity="success"
+              (onClick)="updateRole(account.uid, 'admin')" 
+              [disabled]="account.role === 'admin'"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+    <div class="flex justify-end w-full bg-white">
+      <p-paginator 
+        (onPageChange)="onPageChange($event)" 
+        [first]="firstElementPage()" 
+        [rows]="pageSize"
+        [totalRecords]="totalResults()" 
+        [showCurrentPageReport]="true"
+        [showPageLinks]="true" 
+        [showJumpToPageDropdown]="false" 
+        [showFirstLastIcon]="true"
+        currentPageReportTemplate="Elementi {first}-{last} di {totalRecords}" 
+      />
     </div>
   }
 </div>

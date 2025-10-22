@@ -110,6 +110,9 @@ export class FstoreMovieNavigator implements OnInit {
         this.firstElementPage.set(0);
       }
 
+      // Verifica e sincronizza i metadata
+      await this.syncMoviesWithMetadata(moviesData);
+
       this.isLoading.set(false);
     } catch (error) {
       console.error('Error loading movies from Firestore:', error);
@@ -144,6 +147,47 @@ export class FstoreMovieNavigator implements OnInit {
       }
     } catch (error) {
       console.error('Error loading movies status:', error);
+    }
+  }
+
+  async syncMoviesWithMetadata(movies: TmdbMovie[]): Promise<void> {
+    if (movies.length === 0) return;
+
+    try {
+      const metadataRef = doc(this.firestore, 'metadata', 'movie-status');
+      const metadataSnap = await getDoc(metadataRef);
+      
+      let currentImported: number[] = [];
+      let currentExcluded: number[] = [];
+      let currentMarked: number[] = [];
+      
+      if (metadataSnap.exists()) {
+        const data = metadataSnap.data();
+        currentImported = data['imported'] || [];
+        currentExcluded = data['excluded'] || [];
+        currentMarked = data['marked'] || [];
+      }
+      
+      // Trova i movie ID che non sono presenti in "imported"
+      const movieIds = movies.map(m => m.id);
+      const missingIds = movieIds.filter(id => !currentImported.includes(id));
+      
+      if (missingIds.length > 0) {
+        console.log(`Trovati ${missingIds.length} film non sincronizzati nei metadata. Aggiorno...`);
+        
+        // Aggiungi i movie ID mancanti all'array imported
+        const updatedImported = [...new Set([...currentImported, ...missingIds])];
+        
+        await setDoc(metadataRef, {
+          imported: updatedImported,
+          excluded: currentExcluded,
+          marked: currentMarked
+        });
+        
+        console.log('Metadata sincronizzati con successo!');
+      }
+    } catch (error) {
+      console.error('Error syncing movies with metadata:', error);
     }
   }
 
