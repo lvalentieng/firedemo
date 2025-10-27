@@ -82,10 +82,10 @@
         [rows]="20"
         [totalRecords]="totalResults()" 
         [showCurrentPageReport]="true"
-        [showPageLinks]="true" 
+        [showPageLinks]="false"
         [showJumpToPageDropdown]="false" 
-        [showFirstLastIcon]="true"
-        currentPageReportTemplate="Elementi {first}-{last} di {totalRecords}" 
+        [showFirstLastIcon]="false"
+        currentPageReportTemplate="Pagina {currentPage} di {totalPages} - Elementi {first}-{last} di {totalRecords}" 
       />
     </div>
   }
