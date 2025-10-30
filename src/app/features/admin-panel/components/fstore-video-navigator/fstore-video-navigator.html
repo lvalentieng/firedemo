@@ -1,0 +1,154 @@
+<div class="fstore-video-navigator">
+  <p-toast />
+  
+  @if (isLoading()) {
+    <p>Caricamento video da Firestore...</p>
+  }
+
+  @if (!isLoading()) {
+    <p-panel [header]="'Video del film ID: ' + movieId()">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <p>Totale video: {{ videos().length }}</p>
+        <p-button 
+          label="Aggiungi Video" 
+          icon="pi pi-plus" 
+          (onClick)="openAddDialog()"
+        />
+      </div>
+    </p-panel>
+
+    @if (videos().length === 0) {
+      <div style="text-align: center; padding: 40px; background-color: #f9f9f9; border-radius: 8px; margin-top: 20px;">
+        <i class="pi pi-video" style="font-size: 3rem; color: #ccc; margin-bottom: 15px;"></i>
+        <h3 style="color: #666; margin: 0 0 10px 0;">Nessun video presente</h3>
+        <p style="color: #999; margin: 0;">Clicca su "Aggiungi Video" per iniziare ad aggiungere video a questo film.</p>
+      </div>
+    }
+
+    @if (videos().length > 0) {
+      <p-table
+        [value]="videos()"
+        [paginator]="false"
+        [tableStyle]="{ 'min-width': '70rem' }"
+      >
+      <ng-template #header>
+        <tr>
+          <th style="width:10%">ID</th>
+          <th style="width:40%">URL YouTube</th>
+          <th style="width:12%">Da (Tempo)</th>
+          <th style="width:12%">A (Tempo)</th>
+          <th style="width:26%">Azioni</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-video>
+        <tr>
+          <td style="font-size: 0.8em;">{{ video.id }}</td>
+          <td style="font-size: 0.85em; word-break: break-all;">
+            <a [href]="video.youtubeUrl" target="_blank" rel="noopener noreferrer">
+              {{ video.youtubeUrl }}
+            </a>
+          </td>
+          <td>{{ video.fromTime || '-' }}</td>
+          <td>{{ video.toTime || '-' }}</td>
+          <td>
+            <p-button 
+              label="Apri video" 
+              icon="pi pi-external-link" 
+              severity="info"
+              size="small"
+              (onClick)="openVideo(video)"
+              [style]="{'margin-right': '5px'}"
+            />
+            <p-button 
+              label="Elimina" 
+              icon="pi pi-trash" 
+              severity="danger"
+              size="small"
+              (onClick)="deleteVideo(video.id!)"
+              [disabled]="isLoading()"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    }
+
+    <!-- Dialog per aggiungere nuovo video -->
+    <p-dialog 
+      [header]="'Aggiungi Video'" 
+      [(visible)]="showAddDialog" 
+      [modal]="true"
+      [style]="{ width: '500px' }"
+      [draggable]="false"
+      [resizable]="false"
+    >
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div>
+          <label for="youtubeUrl" style="display: block; margin-bottom: 5px; font-weight: bold;">
+            URL YouTube <span style="color: red;">*</span>
+          </label>
+          <input 
+            pInputText 
+            id="youtubeUrl"
+            [value]="newVideo().youtubeUrl || ''"
+            (input)="updateNewVideoField('youtubeUrl', $any($event.target).value)"
+            placeholder="https://www.youtube.com/watch?v=..."
+            style="width: 100%;"
+          />
+          <small style="color: #666; display: block; margin-top: 5px;">
+            Formati supportati: youtube.com/watch?v=ID o youtu.be/ID
+          </small>
+        </div>
+
+        <div>
+          <label for="fromTime" style="display: block; margin-bottom: 5px; font-weight: bold;">
+            Da (Tempo)
+          </label>
+          <input 
+            pInputText 
+            id="fromTime"
+            [value]="newVideo().fromTime || ''"
+            (input)="updateNewVideoField('fromTime', $any($event.target).value)"
+            placeholder="HH:MM:SS, MM:SS o SS"
+            style="width: 100%;"
+          />
+          <small style="color: #666; display: block; margin-top: 5px;">
+            Opzionale. Es: 01:30 (inizia da 1 minuto e 30 secondi)
+          </small>
+        </div>
+
+        <div>
+          <label for="toTime" style="display: block; margin-bottom: 5px; font-weight: bold;">
+            A (Tempo)
+          </label>
+          <input 
+            pInputText 
+            id="toTime"
+            [value]="newVideo().toTime || ''"
+            (input)="updateNewVideoField('toTime', $any($event.target).value)"
+            placeholder="HH:MM:SS, MM:SS o SS"
+            style="width: 100%;"
+          />
+          <small style="color: #666; display: block; margin-top: 5px;">
+            Opzionale. Es: 03:00 (finisce a 3 minuti)
+          </small>
+        </div>
+      </div>
+
+      <ng-template #footer>
+        <p-button 
+          label="Annulla" 
+          icon="pi pi-times" 
+          severity="secondary"
+          (onClick)="closeAddDialog()"
+        />
+        <p-button 
+          label="Aggiungi" 
+          icon="pi pi-check" 
+          (onClick)="addVideo()"
+          [disabled]="!newVideo().youtubeUrl || newVideo().youtubeUrl?.trim() === ''"
+        />
+      </ng-template>
+    </p-dialog>
+  }
+</div>

@@ -12,6 +12,7 @@ import { TmdbNavigator } from './features/admin-panel/components/tmdb-navigator/
 import { AdminPanel } from './features/admin-panel/admin-panel';
 import { FstoreMovieNavigator } from './features/admin-panel/components/fstore-movie-navigator/fstore-movie-navigator';
 import { FstoreImageNavigator } from './features/admin-panel/components/fstore-image-navigator/fstore-image-navigator';
+import { FstoreVideoNavigator } from './features/admin-panel/components/fstore-video-navigator/fstore-video-navigator';
 
 export const routes: Routes = [
     {
@@ -58,6 +59,10 @@ export const routes: Routes = [
                     {
                         path: 'movies/:id/images',
                         component: FstoreImageNavigator
+                    },
+                    {
+                        path: 'movies/:id/videos',
+                        component: FstoreVideoNavigator
                     },
                     {
                         path: '',

@@ -56,7 +56,8 @@
               <button pButton size="small" severity="info" (click)="markAsReviewed(movie.id)" style="margin-right: 5px;">Marca</button>
             }
             
-            <a [routerLink]="['/private/admin/movies', movie.id, 'images']" pButton size="small" severity="contrast" icon="pi pi-images" label="Immagini"></a>
+            <a [routerLink]="['/private/admin/movies', movie.id, 'images']" pButton size="small" severity="contrast" icon="pi pi-images" label="Immagini" style="margin-right: 5px;"></a>
+            <a [routerLink]="['/private/admin/movies', movie.id, 'videos']" pButton size="small" severity="contrast" icon="pi pi-video" label="Video"></a>
           </td>
         </tr>
       </ng-template>

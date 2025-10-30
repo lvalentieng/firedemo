@@ -1,0 +1,11 @@
+.fstore-video-navigator {
+  padding: 1rem;
+}
+
+p-table ::ng-deep td {
+  vertical-align: middle;
+}
+
+p-table ::ng-deep iframe {
+  border-radius: 4px;
+}
