@@ -9,15 +9,19 @@ import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-fstore-movie-navigator',
-  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, SelectModule, FormsModule, RouterLink],
+  imports: [TableModule, CommonModule, PaginatorModule, ButtonModule, PanelModule, SelectModule, FormsModule, RouterLink, ToastModule],
   templateUrl: './fstore-movie-navigator.html',
-  styleUrl: './fstore-movie-navigator.css'
+  styleUrl: './fstore-movie-navigator.css',
+  providers: [MessageService]
 })
 export class FstoreMovieNavigator implements OnInit {
   private firestore = inject(Firestore);
+  private messageService = inject(MessageService);
 
   movies = signal<TmdbMovie[]>([]);
   isLoading = signal(false);
@@ -116,7 +120,12 @@ export class FstoreMovieNavigator implements OnInit {
       this.isLoading.set(false);
     } catch (error) {
       console.error('Error loading movies from Firestore:', error);
-      alert('Errore nel caricamento dei film da Firestore: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel caricamento dei film da Firestore',
+        life: 5000
+      });
       this.isLoading.set(false);
     }
   }
@@ -210,10 +219,20 @@ export class FstoreMovieNavigator implements OnInit {
         return newSet;
       });
       
-      alert(`Film ID ${movieId} escluso con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `Film ID ${movieId} escluso con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error excluding movie:', error);
-      alert('Errore nell\'esclusione del film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nell\'esclusione del film',
+        life: 5000
+      });
     }
   }
 
@@ -230,10 +249,20 @@ export class FstoreMovieNavigator implements OnInit {
         return newSet;
       });
       
-      alert(`Film ID ${movieId} incluso con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `Film ID ${movieId} incluso con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error including movie:', error);
-      alert('Errore nell\'inclusione del film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nell\'inclusione del film',
+        life: 5000
+      });
     }
   }
 
@@ -256,10 +285,20 @@ export class FstoreMovieNavigator implements OnInit {
         return newSet;
       });
       
-      alert(`Film ID ${movieId} marcato come revisionato!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `Film ID ${movieId} marcato come revisionato!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error marking movie as reviewed:', error);
-      alert('Errore nel marcare il film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel marcare il film',
+        life: 5000
+      });
     }
   }
 
@@ -276,10 +315,20 @@ export class FstoreMovieNavigator implements OnInit {
         return newSet;
       });
       
-      alert(`Film ID ${movieId} demarcato con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `Film ID ${movieId} demarcato con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error unmarking movie:', error);
-      alert('Errore nel demarcare il film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel demarcare il film',
+        life: 5000
+      });
     }
   }
 
@@ -334,7 +383,12 @@ export class FstoreMovieNavigator implements OnInit {
   async excludeSelectedMovies(): Promise<void> {
     const selectedIds = Array.from(this.selectedMovies());
     if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessun film selezionato!',
+        life: 3000
+      });
       return;
     }
 
@@ -363,10 +417,20 @@ export class FstoreMovieNavigator implements OnInit {
       });
 
       this.selectedMovies.set(new Set());
-      alert(`${selectedIds.length} film esclusi con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `${selectedIds.length} film esclusi con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error excluding movies:', error);
-      alert('Errore nell\'esclusione dei film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nell\'esclusione dei film',
+        life: 5000
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -375,7 +439,12 @@ export class FstoreMovieNavigator implements OnInit {
   async includeSelectedMovies(): Promise<void> {
     const selectedIds = Array.from(this.selectedMovies());
     if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessun film selezionato!',
+        life: 3000
+      });
       return;
     }
 
@@ -402,10 +471,20 @@ export class FstoreMovieNavigator implements OnInit {
       });
 
       this.selectedMovies.set(new Set());
-      alert(`${selectedIds.length} film inclusi con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `${selectedIds.length} film inclusi con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error including movies:', error);
-      alert('Errore nell\'inclusione dei film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nell\'inclusione dei film',
+        life: 5000
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -414,7 +493,12 @@ export class FstoreMovieNavigator implements OnInit {
   async markSelectedAsReviewed(): Promise<void> {
     const selectedIds = Array.from(this.selectedMovies());
     if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessun film selezionato!',
+        life: 3000
+      });
       return;
     }
 
@@ -443,10 +527,20 @@ export class FstoreMovieNavigator implements OnInit {
       });
 
       this.selectedMovies.set(new Set());
-      alert(`${selectedIds.length} film marcati come revisionati!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `${selectedIds.length} film marcati come revisionati!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error marking movies as reviewed:', error);
-      alert('Errore nel marcare i film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel marcare i film',
+        life: 5000
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -455,7 +549,12 @@ export class FstoreMovieNavigator implements OnInit {
   async unmarkSelectedMovies(): Promise<void> {
     const selectedIds = Array.from(this.selectedMovies());
     if (selectedIds.length === 0) {
-      alert('Nessun film selezionato!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessun film selezionato!',
+        life: 3000
+      });
       return;
     }
 
@@ -482,10 +581,20 @@ export class FstoreMovieNavigator implements OnInit {
       });
 
       this.selectedMovies.set(new Set());
-      alert(`${selectedIds.length} film demarcati con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `${selectedIds.length} film demarcati con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error unmarking movies:', error);
-      alert('Errore nel demarcare i film: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel demarcare i film',
+        life: 5000
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -494,12 +603,22 @@ export class FstoreMovieNavigator implements OnInit {
   async applyBatchOperation(): Promise<void> {
     const operation = this.selectedOperation();
     if (!operation) {
-      alert('Seleziona un\'operazione da eseguire!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Seleziona un\'operazione da eseguire!',
+        life: 3000
+      });
       return;
     }
 
     if (this.selectedMovies().size === 0) {
-      alert('Nessun film selezionato!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessun film selezionato!',
+        life: 3000
+      });
       return;
     }
 

@@ -9,16 +9,20 @@ import { PanelModule } from 'primeng/panel';
 import { SelectModule } from 'primeng/select';
 import { FormsModule } from '@angular/forms';
 import { ImageModule } from 'primeng/image';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-fstore-image-navigator',
-  imports: [TableModule, CommonModule, ButtonModule, PanelModule, SelectModule, FormsModule, ImageModule],
+  imports: [TableModule, CommonModule, ButtonModule, PanelModule, SelectModule, FormsModule, ImageModule, ToastModule],
+  providers: [MessageService],
   templateUrl: './fstore-image-navigator.html',
   styleUrl: './fstore-image-navigator.css'
 })
 export class FstoreImageNavigator implements OnInit {
   private route = inject(ActivatedRoute);
   private firestore = inject(Firestore);
+  private messageService = inject(MessageService);
 
   movieId = signal<string | null>(null);
   images = signal<TmdbImage[]>([]);
@@ -64,7 +68,12 @@ export class FstoreImageNavigator implements OnInit {
       this.isLoading.set(false);
     } catch (error) {
       console.error('Error loading images from Firestore:', error);
-      alert('Errore nel caricamento delle immagini da Firestore: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel caricamento delle immagini da Firestore',
+        life: 5000
+      });
       this.isLoading.set(false);
     }
   }
@@ -95,10 +104,20 @@ export class FstoreImageNavigator implements OnInit {
         )
       );
 
-      alert('Immagine oscurata con successo!');
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: 'Immagine oscurata con successo!',
+        life: 3000
+      });
     } catch (error) {
       console.error('Error obscuring image:', error);
-      alert('Errore nell\'oscurare l\'immagine: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nell\'oscurare l\'immagine',
+        life: 5000
+      });
     }
   }
 
@@ -119,10 +138,20 @@ export class FstoreImageNavigator implements OnInit {
         )
       );
 
-      alert('Immagine resa visibile con successo!');
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: 'Immagine resa visibile con successo!',
+        life: 3000
+      });
     } catch (error) {
       console.error('Error unobscuring image:', error);
-      alert('Errore nel rendere visibile l\'immagine: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel rendere visibile l\'immagine',
+        life: 5000
+      });
     }
   }
 
@@ -170,7 +199,12 @@ export class FstoreImageNavigator implements OnInit {
     const selectedIds = Array.from(this.selectedImages());
     const movieId = this.movieId();
     if (!movieId || selectedIds.length === 0) {
-      alert('Nessuna immagine selezionata!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessuna immagine selezionata!',
+        life: 3000
+      });
       return;
     }
 
@@ -195,10 +229,20 @@ export class FstoreImageNavigator implements OnInit {
       );
 
       this.selectedImages.set(new Set());
-      alert(`${selectedIds.length} immagini oscurate con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `${selectedIds.length} immagini oscurate con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error obscuring images:', error);
-      alert('Errore nell\'oscurare le immagini: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nell\'oscurare le immagini',
+        life: 5000
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -208,7 +252,12 @@ export class FstoreImageNavigator implements OnInit {
     const selectedIds = Array.from(this.selectedImages());
     const movieId = this.movieId();
     if (!movieId || selectedIds.length === 0) {
-      alert('Nessuna immagine selezionata!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessuna immagine selezionata!',
+        life: 3000
+      });
       return;
     }
 
@@ -233,10 +282,20 @@ export class FstoreImageNavigator implements OnInit {
       );
 
       this.selectedImages.set(new Set());
-      alert(`${selectedIds.length} immagini rese visibili con successo!`);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Successo',
+        detail: `${selectedIds.length} immagini rese visibili con successo!`,
+        life: 3000
+      });
     } catch (error) {
       console.error('Error unobscuring images:', error);
-      alert('Errore nel rendere visibili le immagini: ' + error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Errore',
+        detail: 'Errore nel rendere visibili le immagini',
+        life: 5000
+      });
     } finally {
       this.isLoading.set(false);
     }
@@ -245,12 +304,22 @@ export class FstoreImageNavigator implements OnInit {
   async applyBatchOperation(): Promise<void> {
     const operation = this.selectedOperation();
     if (!operation) {
-      alert('Seleziona un\'operazione da eseguire!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Seleziona un\'operazione da eseguire!',
+        life: 3000
+      });
       return;
     }
 
     if (this.selectedImages().size === 0) {
-      alert('Nessuna immagine selezionata!');
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Attenzione',
+        detail: 'Nessuna immagine selezionata!',
+        life: 3000
+      });
       return;
     }
 
